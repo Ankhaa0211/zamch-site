@@ -306,35 +306,49 @@ def _normalize_listing_kind(
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
+    _migrate_store_admin_columns()
     if IS_SQLITE:
         _migrate_order_payment_columns()
-        _migrate_store_admin_columns()
         _migrate_product_seller_columns()
         _migrate_api_token_columns()
 
 
+def _store_existing_columns(conn) -> set[str]:
+    if IS_SQLITE:
+        rows = conn.execute(text('PRAGMA table_info("store")')).fetchall()
+        return {r[1] for r in rows}
+    rows = conn.execute(
+        text(
+            """
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = 'public' AND table_name = 'store'
+            """
+        )
+    ).fetchall()
+    return {r[0] for r in rows}
+
+
 def _migrate_store_admin_columns():
     cols = [
-        ("is_approved", "BOOLEAN DEFAULT 1"),
-        ("latitude", "FLOAT"),
-        ("longitude", "FLOAT"),
-        ("phone_verified", "BOOLEAN DEFAULT 0"),
+        ("is_approved", "BOOLEAN DEFAULT FALSE"),
+        ("latitude", "DOUBLE PRECISION"),
+        ("longitude", "DOUBLE PRECISION"),
+        ("phone_verified", "BOOLEAN DEFAULT FALSE"),
     ]
     with engine.connect() as conn:
-        rows = conn.execute(text('PRAGMA table_info("store")')).fetchall()
-        if not rows:
+        existing = _store_existing_columns(conn)
+        if not existing:
             return
-        existing = {r[1] for r in rows}
         if "is_approved" not in existing:
-            conn.execute(text('ALTER TABLE "store" ADD COLUMN is_approved BOOLEAN DEFAULT 1'))
-            conn.execute(text('UPDATE "store" SET is_approved = 1 WHERE is_approved IS NULL'))
+            conn.execute(text('ALTER TABLE "store" ADD COLUMN is_approved BOOLEAN DEFAULT TRUE'))
+            conn.execute(text('UPDATE "store" SET is_approved = TRUE WHERE is_approved IS NULL'))
         for name, coltype in cols:
             if name == "is_approved":
                 continue
             if name not in existing:
                 conn.execute(text(f'ALTER TABLE "store" ADD COLUMN {name} {coltype}'))
         conn.commit()
-
 
 def _migrate_api_token_columns():
     with engine.connect() as conn:
@@ -524,6 +538,9 @@ async def lifespan(app: FastAPI):
         raise RuntimeError("Production дээр CORS_ORIGINS-ийг тодорхой тохируулна")
     if AUTO_CREATE_SCHEMA:
         create_db_and_tables()
+    else:
+        # Postgres production: keep critical store columns in sync even if a migration lags.
+        _migrate_store_admin_columns()
     seed_categories()
     normalize_obud_spelling()
     bootstrap_admin()
