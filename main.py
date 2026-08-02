@@ -2760,6 +2760,7 @@ async def api_mobile_update_product(
     files: Optional[List[UploadFile]] = File(None),
     video: Optional[UploadFile] = File(None),
     clear_video: Optional[str] = Form(None),
+    keep_images: Optional[str] = Form(None),
     stock: Optional[int] = Form(None),
     authorization: Optional[str] = Header(None),
     session: Session = Depends(get_session),
@@ -2825,9 +2826,28 @@ async def api_mobile_update_product(
     if wheel_type is not None:
         product.wheel_type = wheel_type.strip() or None
     if files:
-        images = await save_uploads(files)
-        if images:
-            product.images = json.dumps(images)
+        uploaded = await save_uploads(files)
+        kept: List[str] = []
+        if keep_images is not None:
+            try:
+                parsed = json.loads(keep_images) if keep_images.strip() else []
+                if isinstance(parsed, list):
+                    kept = [str(item) for item in parsed if str(item).startswith("/photos/")]
+            except json.JSONDecodeError:
+                kept = []
+        elif keep_images is None:
+            kept = parse_images(product.images)
+        merged = (kept + uploaded)[:5]
+        product.images = json.dumps(merged)
+    elif keep_images is not None:
+        try:
+            parsed = json.loads(keep_images) if keep_images.strip() else []
+            if not isinstance(parsed, list):
+                parsed = []
+        except json.JSONDecodeError:
+            parsed = []
+        kept = [str(item) for item in parsed if str(item).startswith("/photos/")]
+        product.images = json.dumps(kept[:5])
     if clear_video in ("1", "true", "True"):
         product.video = None
     if video and video.filename:
