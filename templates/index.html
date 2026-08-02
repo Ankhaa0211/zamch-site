@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЗАМЧ — Дугуй, обуд</title>
+    {% include "partials/head_meta.html" with context %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/style.css?v=ux3">
+</head>
+<body class="zamch-shell zamch-shell--home">
+{% include "partials/nav.html" %}
+
+<main class="zamch-main">
+    <section class="hero hero--home" id="homeHero">
+        <div class="container hero-inner">
+            <div class="hero-home-panel reveal" id="homePanel">
+                <h2 class="hero-home-title">Юу хайж байна?</h2>
+
+                <!-- Step 1: choose type -->
+                    <div class="home-picker" id="homePicker">
+                        <button type="button" class="home-intent" data-intent="dugui">
+                            <img class="home-intent-icon" src="/static/icons/dugui.png?v=3" alt="" width="32" height="32">
+                            <span class="home-intent-label">Дугуй</span>
+                        </button>
+                        <button type="button" class="home-intent" data-intent="obud">
+                            <img class="home-intent-icon" src="/static/icons/obud.png?v=2" alt="" width="32" height="32">
+                            <span class="home-intent-label">Обуд</span>
+                        </button>
+                        <button type="button" class="home-intent home-intent--accent" data-intent="combo">
+                            <img class="home-intent-icon" src="/static/icons/combo.png?v=2" alt="" width="32" height="32">
+                            <span class="home-intent-label">Обудтай дугуй</span>
+                        </button>
+                    </div>
+                    <button type="button" class="home-pick-cancel" id="homePickCancel" hidden>Цуцлах</button>
+
+                <!-- Step 2+: only selected type (tap to change) -->
+                <button type="button" class="home-chosen" id="homeChosen" hidden aria-expanded="false">
+                    <img class="home-chosen-icon" id="homeChosenIcon" src="/static/icons/dugui.png?v=3" alt="" width="28" height="28">
+                    <span class="home-chosen-label" id="homeChosenLabel">Дугуй</span>
+                    <span class="home-chosen-hint">солих</span>
+                    <i class="bi bi-chevron-down home-chosen-chevron" aria-hidden="true"></i>
+                </button>
+
+                <div class="home-continue" id="homeContinue" hidden>
+                    <div class="home-vehicle-row">
+                        <div class="home-field">
+                            <label class="home-field-label" for="filter-car-brand">Бренд</label>
+                            <select id="filter-car-brand" class="home-field-input">
+                                <option value="">Сонгох</option>
+                            </select>
+                        </div>
+                        <div class="home-field">
+                            <label class="home-field-label" for="filter-car-model">Модель</label>
+                            <select id="filter-car-model" class="home-field-input" disabled>
+                                <option value="">Эхлээд бренд</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="home-fitments" id="homeFitments" hidden>
+                        <p class="home-fitments-label">Энэ машинд түгээмэл хэмжээ</p>
+                        <div class="home-fitment-chips" id="homeFitmentChips"></div>
+                    </div>
+
+                    <button type="button" class="home-size-toggle" id="homeSizeToggle" aria-expanded="false">
+                        Хэмжээгээр хайх
+                        <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                    </button>
+
+                    <div class="home-size-panel" id="homeSizePanel" hidden>
+                        <div class="home-continue-fields">
+                            <div class="home-field tire-only">
+                                <label class="home-field-label" for="filter-width">Өргөн</label>
+                                <input id="filter-width" type="number" class="home-field-input" placeholder="205" inputmode="numeric">
+                            </div>
+                            <div class="home-field tire-only">
+                                <label class="home-field-label" for="filter-ratio">Ratio</label>
+                                <input id="filter-ratio" type="number" class="home-field-input" placeholder="55" inputmode="numeric">
+                            </div>
+                            <div class="home-field">
+                                <label class="home-field-label" for="filter-diameter">R</label>
+                                <input id="filter-diameter" type="number" class="home-field-input" placeholder="16" inputmode="numeric">
+                            </div>
+                            <div class="home-field rim-only" id="rimBoltField" hidden>
+                                <label class="home-field-label" for="filter-bolt" title="Боолтны нүхний тоо × тойргийн диаметр (мм)">Нүхний хэмжээ</label>
+                                <select id="filter-bolt" class="home-field-input" title="Машиныхаа обудны нүхтэй ижил байх ёстой">
+                                    <option value="">Бүгд</option>
+                                    <option value="4x100">4x100 — ойр нүхтэй</option>
+                                    <option value="5x100">5x100 — ойр нүхтэй</option>
+                                    <option value="5x112">5x112 — саармаг</option>
+                                    <option value="5x114.3">5x114.3 — саармаг</option>
+                                    <option value="5x120">5x120 — хол нүхтэй</option>
+                                    <option value="5x127">5x127 — Jeep</option>
+                                    <option value="5x130">5x130 — хол нүхтэй</option>
+                                    <option value="5x139.7">5x139.7 — хол нүхтэй</option>
+                                    <option value="5x150">5x150 — Land Cruiser</option>
+                                    <option value="6x132">6x132 — хол нүхтэй</option>
+                                    <option value="6x139.7">6x139.7 — хол / пикап</option>
+                                </select>
+                            </div>
+                            <div class="home-field">
+                                <label class="home-field-label" for="filter-condition">Төлөв</label>
+                                <select id="filter-condition" class="home-field-input">
+                                    <option value="">Бүгд</option>
+                                    <option>Шинэ</option>
+                                    <option>Хэрэглэж байсан</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="home-search-go" type="button" id="homeSearchBtn">Хайх</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="home-results" id="homeResults" hidden>
+        <div class="container py-4">
+            <div id="warning-box" class="home-results-warn" style="display:none">
+                Яг таг тохирох бараа олдсонгүй. Ойролцоо илэрцийг харуулж байна.
+            </div>
+            <div id="products-list" class="product-grid"></div>
+        </div>
+    </section>
+
+    <section class="market-deck" id="latestSection">
+        <div class="container">
+            <div class="section-head">
+                <div>
+                    <h2>Шинээр нэмэгдсэн</h2>
+                </div>
+            </div>
+            <div id="latest-products" class="product-grid"></div>
+        </div>
+    </section>
+</main>
+
+{% include "partials/footer.html" %}
+
+<script src="/static/shop.js?v=ux3"></script>
+<script>
+const INTENT_META = {
+    dugui: { title: 'Дугуй', icon: '/static/icons/dugui.png?v=3' },
+    obud: { title: 'Обуд', icon: '/static/icons/obud.png?v=2' },
+    combo: { title: 'Обудтай дугуй', icon: '/static/icons/combo.png?v=2' },
+};
+
+let currentIntent = '';
+
+function formatFitmentLabel(item) {
+    const w = item.width;
+    const r = item.ratio;
+    const d = item.diameter;
+    const bolt = item.bolt_pattern;
+    const showBolt = (currentIntent === 'obud' || currentIntent === 'combo') && bolt;
+    if (w && r && d) {
+        return showBolt ? `${w}/${r} R${d} · ${bolt}` : `${w}/${r} R${d}`;
+    }
+    if (d && bolt) return `R${d} · ${bolt}`;
+    if (d) return `R${d}`;
+    if (bolt) return bolt;
+    return 'Хэмжээ';
+}
+
+function ensureBoltOption(value, select = false) {
+    if (!value) return;
+    const bolt = document.getElementById('filter-bolt');
+    if (![...bolt.options].some(o => o.value === value)) {
+        bolt.add(new Option(value, value));
+    }
+    if (select) bolt.value = value;
+}
+
+function toggleExtraFilters() {
+    const showTire = currentIntent === 'dugui' || currentIntent === 'combo';
+    const showRim = currentIntent === 'obud' || currentIntent === 'combo';
+    document.querySelectorAll('#homeContinue .tire-only').forEach(el => { el.hidden = !showTire; });
+    document.querySelectorAll('#homeContinue .rim-only').forEach(el => { el.hidden = !showRim; });
+}
+
+function setSizePanelOpen(open) {
+    const panel = document.getElementById('homeSizePanel');
+    const toggle = document.getElementById('homeSizeToggle');
+    panel.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.classList.toggle('is-open', open);
+}
+
+function updateChosenChip() {
+    const meta = INTENT_META[currentIntent];
+    if (!meta) return;
+    document.getElementById('homeChosenIcon').src = meta.icon;
+    document.getElementById('homeChosenLabel').textContent = meta.title;
+    document.getElementById('homeChosen').classList.toggle('home-chosen--accent', currentIntent === 'combo');
+}
+
+function setPicking(open) {
+    const hero = document.getElementById('homeHero');
+    const picker = document.getElementById('homePicker');
+    const chosen = document.getElementById('homeChosen');
+    const continueEl = document.getElementById('homeContinue');
+    const cancelBtn = document.getElementById('homePickCancel');
+
+    if (!currentIntent) {
+        picker.hidden = false;
+        chosen.hidden = true;
+        continueEl.hidden = true;
+        cancelBtn.hidden = true;
+        chosen.setAttribute('aria-expanded', 'false');
+        hero.classList.remove('hero--home-searching', 'hero--home-picking');
+        return;
+    }
+
+    hero.classList.add('hero--home-searching');
+    hero.classList.toggle('hero--home-picking', open);
+    chosen.hidden = open;
+    picker.hidden = !open;
+    continueEl.hidden = open;
+    cancelBtn.hidden = !open;
+    chosen.setAttribute('aria-expanded', String(open));
+
+    picker.querySelectorAll('[data-intent]').forEach(btn => {
+        btn.classList.toggle('is-active', btn.getAttribute('data-intent') === currentIntent);
+    });
+}
+
+function clearResults() {
+    document.getElementById('homeResults').hidden = true;
+    document.getElementById('latestSection').hidden = false;
+    document.getElementById('products-list').innerHTML = '';
+    document.getElementById('warning-box').style.display = 'none';
+}
+
+function renderFitmentChips(items) {
+    const wrap = document.getElementById('homeFitments');
+    const box = document.getElementById('homeFitmentChips');
+    if (!items.length) {
+        wrap.hidden = true;
+        box.innerHTML = '';
+        return;
+    }
+    wrap.hidden = false;
+    box.innerHTML = items.map((item) => {
+        const label = escapeHtml(formatFitmentLabel(item));
+        const payload = encodeURIComponent(JSON.stringify(item));
+        return `<button type="button" class="home-fitment-chip" data-fitment="${payload}">${label}</button>`;
+    }).join('');
+
+    box.querySelectorAll('[data-fitment]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            try {
+                applyFitment(JSON.parse(decodeURIComponent(btn.getAttribute('data-fitment'))));
+            } catch (_) {}
+        });
+    });
+}
+
+function resetModelSelect(placeholder) {
+    const modelSel = document.getElementById('filter-car-model');
+    modelSel.innerHTML = `<option value="">${escapeHtml(placeholder)}</option>`;
+    modelSel.disabled = true;
+    renderFitmentChips([]);
+}
+
+async function loadBrands() {
+    const brandSel = document.getElementById('filter-car-brand');
+    try {
+        const data = await (await fetch('/api/car-brands')).json();
+        brandSel.innerHTML = '<option value="">Сонгох</option>' + (data.data || []).map(b =>
+            `<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`
+        ).join('');
+    } catch (_) {
+        brandSel.innerHTML = '<option value="">Сонгох</option>';
+    }
+}
+
+async function loadModelsForBrand(brand) {
+    const modelSel = document.getElementById('filter-car-model');
+    if (!brand) {
+        resetModelSelect('Эхлээд бренд');
+        return;
+    }
+    modelSel.disabled = true;
+    modelSel.innerHTML = '<option value="">Ачаалж байна…</option>';
+    try {
+        const data = await (await fetch('/api/car-models?brand=' + encodeURIComponent(brand))).json();
+        const models = data.data || [];
+        if (!models.length) {
+            resetModelSelect('Модель олдсонгүй');
+            return;
+        }
+        modelSel.innerHTML = '<option value="">Сонгох</option>' + models.map(m =>
+            `<option value="${escapeHtml(m.name)}">${escapeHtml(m.label || m.name)}</option>`
+        ).join('');
+        modelSel.disabled = false;
+    } catch (_) {
+        resetModelSelect('Алдаа гарлаа');
+    }
+    renderFitmentChips([]);
+}
+
+async function loadFitmentsForVehicle() {
+    const brand = document.getElementById('filter-car-brand').value;
+    const model = document.getElementById('filter-car-model').value;
+    if (!brand || !model) {
+        renderFitmentChips([]);
+        return;
+    }
+    try {
+        const url = '/api/car-fitments?brand=' + encodeURIComponent(brand)
+            + '&model=' + encodeURIComponent(model);
+        const data = await (await fetch(url)).json();
+        const bolts = data.bolt_patterns || [];
+        bolts.forEach((b) => ensureBoltOption(b, false));
+        if ((currentIntent === 'obud' || currentIntent === 'combo') && bolts[0]) {
+            ensureBoltOption(bolts[0], true);
+        }
+        renderFitmentChips(data.data || []);
+    } catch (_) {
+        renderFitmentChips([]);
+    }
+}
+
+function applyFitment(item) {
+    if (item.width != null) document.getElementById('filter-width').value = item.width;
+    if (item.ratio != null) document.getElementById('filter-ratio').value = item.ratio;
+    if (item.diameter != null) document.getElementById('filter-diameter').value = item.diameter;
+    if (item.bolt_pattern) ensureBoltOption(item.bolt_pattern, true);
+    setSizePanelOpen(true);
+    loadProducts();
+}
+
+function enterSearchMode(intent) {
+    if (!INTENT_META[intent]) return;
+    const intentChanged = currentIntent !== intent;
+    currentIntent = intent;
+
+    updateChosenChip();
+    toggleExtraFilters();
+    setPicking(false);
+    setSizePanelOpen(false);
+    if (intentChanged) clearResults();
+
+    requestAnimationFrame(() => {
+        document.getElementById('filter-car-brand')?.focus({ preventScroll: true });
+    });
+}
+
+async function loadProducts() {
+    if (!currentIntent) return;
+
+    const params = new URLSearchParams();
+    const brand = document.getElementById('filter-car-brand').value;
+    const model = document.getElementById('filter-car-model').value;
+    const width = document.getElementById('filter-width').value;
+    const ratio = document.getElementById('filter-ratio').value;
+    const diameter = document.getElementById('filter-diameter').value;
+    const bolt = document.getElementById('filter-bolt').value;
+    const condition = document.getElementById('filter-condition').value;
+
+    params.set('intent', currentIntent);
+    if (brand) params.set('car_brand', brand);
+    if (model) params.set('car_model', model);
+    if (condition) params.set('condition', condition);
+    if (diameter) params.set('diameter', diameter);
+    if (currentIntent === 'dugui' || currentIntent === 'combo') {
+        if (width) params.set('width', width);
+        if (ratio) params.set('ratio', ratio);
+    }
+    if ((currentIntent === 'obud' || currentIntent === 'combo') && bolt) {
+        params.set('bolt_pattern', bolt);
+    }
+
+    document.getElementById('homeResults').hidden = false;
+    document.getElementById('latestSection').hidden = true;
+
+    const box = document.getElementById('products-list');
+    box.className = '';
+    box.innerHTML = '<div class="home-empty">Хайж байна…</div>';
+
+    const res = await fetch('/api/products?' + params.toString());
+    const result = await res.json();
+    const list = result.data || [];
+    document.getElementById('warning-box').style.display =
+        (!result.is_exact_match && list.length) ? 'block' : 'none';
+
+    if (!list.length) {
+        box.innerHTML = emptyState('Илэрц олдсонгүй',
+            `<button type="button" class="btn-zamch btn-zamch-dark btn-sm" onclick="clearResults()">Дахин хайх</button>`);
+    } else {
+        box.className = 'product-grid';
+        box.innerHTML = list.map(productCard).join('');
+    }
+
+    document.getElementById('homeResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function loadLatest() {
+    const prodRes = await fetch('/api/products');
+    const products = (await prodRes.json()).data || [];
+    const box = document.getElementById('latest-products');
+    if (!products.length) {
+        box.className = '';
+        box.innerHTML = emptyState('Одоогоор бараа алга',
+            `<a href="/for-sellers" class="btn-zamch btn-zamch-dark btn-sm">Худалдагчдад</a>`);
+        return;
+    }
+    box.className = 'product-grid';
+    box.innerHTML = products.slice(0, 8).map(productCard).join('');
+}
+
+function bindHomeSearch() {
+    document.querySelectorAll('#homePicker [data-intent]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            enterSearchMode(btn.getAttribute('data-intent'));
+        });
+    });
+
+    document.getElementById('homeChosen')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        setPicking(true);
+    });
+
+    document.getElementById('homePickCancel')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        setPicking(false);
+    });
+
+    document.getElementById('homeSizeToggle')?.addEventListener('click', () => {
+        const open = document.getElementById('homeSizePanel').hidden;
+        setSizePanelOpen(open);
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.getElementById('homeHero')?.classList.contains('hero--home-picking')) {
+            setPicking(false);
+        }
+    });
+
+    document.getElementById('homeSearchBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        loadProducts();
+    });
+
+    document.getElementById('filter-car-brand')?.addEventListener('change', async (e) => {
+        await loadModelsForBrand(e.target.value);
+    });
+
+    document.getElementById('filter-car-model')?.addEventListener('change', () => {
+        loadFitmentsForVehicle();
+    });
+
+    ['filter-width', 'filter-ratio', 'filter-diameter'].forEach(id => {
+        document.getElementById(id)?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                loadProducts();
+            }
+        });
+    });
+}
+
+async function initHome() {
+    const params = new URLSearchParams(location.search);
+    const intent = (params.get('intent') || '').toLowerCase();
+
+    bindHomeSearch();
+    await Promise.all([loadBrands(), loadLatest()]);
+    resetModelSelect('Эхлээд бренд');
+
+    if (INTENT_META[intent]) {
+        history.replaceState(null, '', location.pathname);
+        enterSearchMode(intent);
+    } else if (location.search) {
+        history.replaceState(null, '', location.pathname);
+    }
+}
+
+initHome().catch(console.error);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бүтээгдэхүүн - ЗАМЧ</title>
+    {% set page_title = 'Бүтээгдэхүүн - ЗАМЧ' %}
+    {% set page_description = 'ЗАМЧ дээрх дугуй, обуд бүтээгдэхүүн.' %}
+    {% include "partials/head_meta.html" with context %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/style.css?v=ux3">
+</head>
+<body class="zamch-shell site-bg">
+{% include "partials/nav.html" %}
+
+<main class="zamch-main">
+<div class="container py-4 py-md-5">
+    <div id="detail" class="row g-4 align-items-start">
+        <div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>
+    </div>
+</div>
+</main>
+
+{% include "partials/footer.html" %}
+
+<script src="/static/shop.js?v=ux3"></script>
+<script>
+const productId = {{ product_id }};
+
+function setMeta(name, content, prop) {
+    if (!content) return;
+    const sel = prop ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+    let el = document.querySelector(sel);
+    if (!el) {
+        el = document.createElement('meta');
+        if (prop) el.setAttribute('property', name);
+        else el.setAttribute('name', name);
+        document.head.appendChild(el);
+    }
+    el.setAttribute('content', content);
+}
+
+async function loadProduct() {
+    const res = await fetch('/api/products/' + productId);
+    const box = document.getElementById('detail');
+    if (!res.ok) {
+        document.title = 'Олдсонгүй - ЗАМЧ';
+        box.innerHTML = '<div class="col-12 empty-state"><h3>Бүтээгдэхүүн олдсонгүй</h3><a href="/" class="btn-zamch btn-zamch-dark mt-3">Буцах</a></div>';
+        return;
+    }
+    const p = await res.json();
+    const title = String(p.title || 'Бүтээгдэхүүн').trim();
+    document.title = title + ' - ЗАМЧ';
+    const desc = [p.brand, p.category_name, p.store_name].filter(Boolean).join(' · ') || 'ЗАМЧ бүтээгдэхүүн';
+    setMeta('description', desc);
+    setMeta('og:title', title + ' - ЗАМЧ', true);
+    setMeta('og:description', desc, true);
+    setMeta('twitter:title', title + ' - ЗАМЧ');
+    setMeta('twitter:description', desc);
+    const images = (p.images || []).map(u => escapeHtml(safeUrl(u))).filter(Boolean);
+    const mainImg = images[0] || '/static/placeholder.jpg';
+    const absImg = mainImg.startsWith('http') ? mainImg : (location.origin + mainImg);
+    setMeta('og:image', absImg, true);
+    const video = p.video ? escapeHtml(safeUrl(p.video)) : '';
+    const thumbs = images.length > 1
+        ? `<div class="d-flex gap-2 flex-wrap p-2 border-top">${images.map((src, i) =>
+            `<button type="button" class="p-0 border rounded-3 overflow-hidden product-thumb ${i===0?'is-active':''}" data-src="${src}" style="width:64px;height:64px">
+               <img src="${src}" alt="" style="width:100%;height:100%;object-fit:cover">
+             </button>`).join('')}</div>`
+        : '';
+    const media = video
+        ? `<video id="productMainMedia" class="w-100 object-fit-cover" style="aspect-ratio:1/1;max-height:560px" poster="${mainImg}" controls muted playsinline loop>
+             <source src="${video}" type="video/mp4">
+           </video>`
+        : `<img id="productMainMedia" src="${mainImg}" class="w-100 object-fit-cover" style="aspect-ratio:1/1;max-height:560px" alt="">`;
+    let specs = '';
+    if (p.listing_kind === 'combo' || p.category_slug === 'dugui') {
+        if (p.listing_kind === 'combo') {
+            specs += `<div class="d-flex justify-content-between py-2 border-bottom"><span class="text-secondary">Төрөл</span><strong>Обудтай дугуй</strong></div>`;
+        }
+        specs += `<div class="d-flex justify-content-between py-2 border-bottom"><span class="text-secondary">Хэмжээ</span><strong>${escapeHtml(p.width || '-')}/${escapeHtml(p.ratio || '-')} R${escapeHtml(p.diameter || '-')}</strong></div>`;
+        if (p.listing_kind !== 'combo') {
+            specs += `<div class="d-flex justify-content-between py-2 border-bottom"><span class="text-secondary">Хээ</span><strong>${p.tread_percent ? escapeHtml(p.tread_percent) + '%' : '-'}</strong></div>`;
+        }
+        if (p.listing_kind === 'combo' && p.bolt_pattern) {
+            specs += `<div class="d-flex justify-content-between py-2 border-bottom"><span class="text-secondary">Нүхний хэмжээ</span><strong>${escapeHtml(p.bolt_pattern)}</strong></div>`;
+        }
+    } else if (p.category_slug === 'obud') {
+        specs = `<div class="d-flex justify-content-between py-2 border-bottom"><span class="text-secondary">Төрөл</span><strong>${escapeHtml(p.wheel_type || '-')}</strong></div>
+                 <div class="d-flex justify-content-between py-2 border-bottom"><span class="text-secondary">R / нүх</span><strong>R${escapeHtml(p.diameter || '-')} · ${escapeHtml(p.bolt_pattern || '-')}</strong></div>`;
+    }
+    if (p.car_make) {
+        specs += `<div class="d-flex justify-content-between py-2 border-bottom"><span class="text-secondary">Машины марка</span><strong>${escapeHtml(p.car_make)}</strong></div>`;
+    }
+
+    const storeLink = p.store_id
+        ? `<a href="/stores/${Number(p.store_id)}" class="text-decoration-none">${escapeHtml(p.store_name || 'Дэлгүүр')}</a>`
+        : escapeHtml(p.store_name || '');
+
+    box.innerHTML = `
+      <div class="col-lg-6">
+        <div class="panel p-0 overflow-hidden">
+          ${media}
+          ${thumbs}
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="panel h-100">
+          <div class="small text-secondary mb-2">${escapeHtml(p.category_name || '')} · ${storeLink}</div>
+          <h1 class="page-title mb-2" style="font-size:clamp(1.5rem,3vw,2rem)">${escapeHtml(p.title)}</h1>
+          <div class="fs-3 fw-bold mb-3" style="color:var(--brand-deep)">${money(p.price)}</div>
+          <div class="mb-3">
+            <div class="d-flex justify-content-between py-2 border-bottom"><span class="text-secondary">Байдал</span><strong>${escapeHtml(p.condition || '-')}</strong></div>
+            <div class="d-flex justify-content-between py-2 border-bottom"><span class="text-secondary">Брэнд</span><strong>${escapeHtml(p.brand || '-')}</strong></div>
+            <div class="d-flex justify-content-between py-2 border-bottom"><span class="text-secondary">Нөөц</span><strong>${Number(p.stock || 0)}</strong></div>
+            ${specs}
+          </div>
+          <p class="text-secondary">${escapeHtml(p.description || 'Тайлбар байхгүй')}</p>
+          <div class="d-flex gap-2 align-items-center mt-4">
+            <input type="number" id="qty" class="form-control" value="1" min="1" max="${Math.max(1, Number(p.stock || 0))}" style="width:100px" ${Number(p.stock) < 1 ? 'disabled' : ''}>
+            <button class="btn-zamch btn-zamch-primary flex-grow-1" onclick="addToCart()" ${Number(p.stock) < 1 ? 'disabled' : ''}>
+              ${Number(p.stock) < 1 ? 'Дууссан' : 'Сагсанд хийх'}
+            </button>
+          </div>
+          <div id="cartMsg" class="small mt-2"></div>
+        </div>
+      </div>`;
+
+    box.querySelectorAll('.product-thumb').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const main = document.getElementById('productMainMedia');
+            if (main && main.tagName === 'IMG') main.src = btn.getAttribute('data-src');
+            box.querySelectorAll('.product-thumb').forEach(b => b.classList.remove('is-active'));
+            btn.classList.add('is-active');
+        });
+    });
+}
+async function addToCart() {
+    const qty = Number(document.getElementById('qty').value || 1);
+    const fd = new FormData();
+    fd.append('product_id', productId);
+    fd.append('quantity', qty);
+    const res = await fetch('/api/cart', { method: 'POST', body: fd });
+    const msg = document.getElementById('cartMsg');
+    if (res.ok) {
+        msg.className = 'small mt-2 text-success fw-bold';
+        msg.textContent = 'Сагсанд нэмэгдлээ';
+        await refreshCartBadge();
+        if (typeof openCartDropdown === 'function') await openCartDropdown();
+    } else {
+        const err = await res.json().catch(() => ({}));
+        msg.className = 'small mt-2 text-danger';
+        msg.textContent = err.detail || 'Алдаа гарлаа';
+    }
+}
+
+loadProduct().catch(console.error);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Нууцлалын бодлого - ЗАМЧ</title>
+    {% set page_title = 'Нууцлалын бодлого - ЗАМЧ' %}
+    {% set page_description = 'ЗАМЧ нууцлалын бодлого — хувийн мэдээлэл хэрхэн цуглуулж, ашиглах тухай.' %}
+    {% include "partials/head_meta.html" with context %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/style.css?v=ux3">
+</head>
+<body class="zamch-shell site-bg">
+{% include "partials/nav.html" %}
+
+<main class="zamch-main">
+    <section class="section">
+        <div class="container content-narrow">
+            <header class="page-head">
+                <p class="page-kicker">Хууль эрх зүй</p>
+                <h1 class="page-title">Нууцлалын бодлого</h1>
+                <p class="page-lead">Сүүлд шинэчилсэн: 2026-08-02</p>
+            </header>
+
+            <div class="legal-prose">
+                <h2>1. Юу цуглуулдаг вэ?</h2>
+                <p>Захиалга, бүртгэлийн үед нэр, утасны дугаар, хаяг, төлбөрийн төлөв (QPay гэх мэт) зэрэг үйлчилгээнд шаардлагатай мэдээллийг авна.</p>
+
+                <h2>2. Яагаад ашигладаг вэ?</h2>
+                <p>Захиалга биелүүлэх, хүргэлт зохицуулах, дэмжлэг үзүүлэх, залилангаас сэргийлэх, үйлчилгээг сайжруулах зорилгоор ашиглана.</p>
+
+                <h2>3. Хэнтэй хуваалцдаг вэ?</h2>
+                <p>Захиалгыг биелүүлэхэд шаардлагатай хэмжээгээр холбогдох дэлгүүр, төлбөр/хүргэлтийн үйлчилгээ үзүүлэгчидтэй хуваалцана. Зар сурталчилгааны зорилгоор гуравдагч этгээдэд зардаггүй.</p>
+
+                <h2>4. Хадгалалт</h2>
+                <p>Мэдээллийг үйлчилгээ үзүүлэх, хууль ёсны үүрэг биелүүлэхэд шаардлагатай хугацаанд хадгална. Нууц үгийг шифрлэсэн хэлбэрээр хадгална.</p>
+
+                <h2>5. Таны эрх</h2>
+                <p>Бүртгэлийн мэдээллээ засах, нууц үг солих, эсвэл бүртгэл устгуулах хүсэлтийг ЗАМЧ дэмжлэгт илгээж болно.</p>
+
+                <h2>6. Холбоо барих</h2>
+                <p>Нууцлалтай холбоотой асуултыг <a href="/how-it-works">Тусламж</a> хуудас эсвэл захиалгын утсаар холбогдоно уу.</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+{% include "partials/footer.html" %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/shop.js?v=ux3"></script>
+</body>
+</html>

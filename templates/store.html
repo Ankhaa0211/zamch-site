@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дэлгүүр - ЗАМЧ</title>
+    {% include "partials/head_meta.html" with context %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/style.css?v=ux3">
+</head>
+<body class="zamch-shell site-bg">
+{% include "partials/nav.html" %}
+
+<main class="zamch-main">
+    <div class="container py-4 py-md-5">
+        <div id="storeHero" class="store-profile">
+            <div class="empty-state">Дэлгүүрийг ачаалж байна...</div>
+        </div>
+
+        <div class="section-head store-products-head">
+            <div>
+                <h2>Бараанууд</h2>
+                <p id="storeProductCount"></p>
+            </div>
+        </div>
+        <div id="storeProducts" class="product-grid"></div>
+    </div>
+</main>
+
+{% include "partials/footer.html" %}
+
+<script src="/static/shop.js?v=ux3"></script>
+<script>
+const storeId = {{ store_id }};
+
+function storeLogo(store) {
+    const logo = safeUrl(store.logo || '');
+    if (store.logo && logo !== '/static/placeholder.jpg') {
+        return `<img src="${escapeHtml(logo)}" alt="">`;
+    }
+    return `<span>${escapeHtml((store.name || '?').trim().charAt(0).toUpperCase())}</span>`;
+}
+
+async function loadStore() {
+    const [storeRes, productRes] = await Promise.all([
+        fetch(`/api/stores/${storeId}`),
+        fetch(`/api/products?store_id=${storeId}`)
+    ]);
+    if (!storeRes.ok) {
+        document.getElementById('storeHero').innerHTML =
+            '<div class="empty-state">Дэлгүүр олдсонгүй.</div>';
+        document.getElementById('storeProducts').innerHTML = '';
+        return;
+    }
+
+    const store = await storeRes.json();
+    const products = (await productRes.json()).data || [];
+    document.title = `${store.name} - ЗАМЧ`;
+    document.getElementById('storeHero').innerHTML = `
+      <div class="store-profile-logo">${storeLogo(store)}</div>
+      <div class="store-profile-copy">
+        <p class="stores-kicker">Идэвхтэй дэлгүүр</p>
+        <h1>${escapeHtml(store.name)}</h1>
+        ${store.location ? `<p class="store-profile-location"><i class="bi bi-geo-alt"></i> ${escapeHtml(store.location)}</p>` : ''}
+        ${store.description ? `<p class="store-profile-description">${escapeHtml(store.description)}</p>` : ''}
+      </div>`;
+    document.getElementById('storeProductCount').textContent = `${products.length} бараа`;
+
+    const box = document.getElementById('storeProducts');
+    if (!products.length) {
+        box.className = '';
+        box.innerHTML = '<div class="empty-state">Одоогоор идэвхтэй бараа байхгүй.</div>';
+        return;
+    }
+    box.innerHTML = products.map(productCard).join('');
+}
+loadStore().catch(console.error);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

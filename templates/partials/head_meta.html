@@ -1,0 +1,17 @@
+{# Shared favicon + Open Graph. Optional: page_title, page_description, og_image #}
+{% set _title = page_title|default('ЗАМЧ — Дугуй, обуд') %}
+{% set _desc = page_description|default('ЗАМЧ — Монголын дугуй, обуд зах зээл. Хайгаад захиална.') %}
+{% set _img = og_image|default('/static/logo.jpg') %}
+{% set _base = (request.url.scheme ~ '://' ~ request.url.netloc) if request else '' %}
+<link rel="icon" href="/static/logo.jpg" type="image/jpeg">
+<link rel="apple-touch-icon" href="/static/logo.jpg">
+<meta name="description" content="{{ _desc }}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ЗАМЧ">
+<meta property="og:title" content="{{ _title }}">
+<meta property="og:description" content="{{ _desc }}">
+<meta property="og:image" content="{{ _base }}{{ _img if _img.startswith('/') else '/' ~ _img }}">
+<meta property="og:locale" content="mn_MN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ _title }}">
+<meta name="twitter:description" content="{{ _desc }}">

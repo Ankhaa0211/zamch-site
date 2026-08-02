@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сагс - ЗАМЧ</title>
+    {% include "partials/head_meta.html" with context %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/style.css?v=ux3">
+</head>
+<body class="zamch-shell site-bg">
+{% include "partials/nav.html" %}
+
+<main class="zamch-main">
+<div class="container py-4 py-md-5">
+    <header class="page-head">
+        <h1 class="page-title">Сагс</h1>
+    </header>
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div id="cartList" class="panel"></div>
+        </div>
+        <div class="col-lg-5">
+            <div id="pendingPayBox" class="panel mb-3" style="display:none">
+                <h5 class="fw-bold mb-2" style="font-family:var(--font-display)">Төлбөр дутуу</h5>
+                <p class="small text-secondary mb-3">QPay төлбөр хүлээгдэж байна. Үргэлжлүүлнэ үү.</p>
+                <button type="button" class="btn-zamch btn-zamch-primary w-100" id="resumePayBtn">Төлбөр үргэлжлүүлэх</button>
+            </div>
+            <div class="panel" id="checkoutPanel">
+                <h5 class="fw-bold mb-3" style="font-family:var(--font-display)">Захиалах</h5>
+                <form id="checkoutForm">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Нэр</label>
+                        <input name="customer_name" id="customerName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Утас</label>
+                        <input name="customer_phone" id="customerPhone" class="form-control" pattern="[6-9][0-9]{7}" maxlength="8" inputmode="numeric" autocomplete="tel" required>
+                        <div class="form-text">8 оронтой утасны дугаар (жишээ: 99112233)</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Хүргэлт</label>
+                        <select name="delivery_type" id="deliveryType" class="form-select">
+                            <option value="delivery">ЗАМЧ хүргэлт</option>
+                            <option value="pickup">Дэлгүүрээс очиж авах</option>
+                        </select>
+                        <div class="form-text" id="deliveryHint">Улаанбаатар дотор. Хугацааг захиалгын дараа баталгаажуулна.</div>
+                    </div>
+                    <div class="mb-3" id="addressBox">
+                        <label class="form-label fw-bold">Хаяг</label>
+                        <textarea name="address" id="addressInput" class="form-control" rows="2" placeholder="Дүүрэг, хороо, байр..." required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Төлбөр</label>
+                        <select name="payment_method" class="form-select" id="paymentMethod">
+                            <option value="qpay" selected>QPay (QR / банкны апп)</option>
+                            <option value="cod" id="codOption">Хүргэлт дээр төлөх</option>
+                        </select>
+                        <div class="form-text" id="qpayHint">Төлбөр ЗАМЧ-ийн QPay мерчант руу төвлөрнө.</div>
+                        <div class="alert alert-warning py-2 px-3 small mb-0 mt-2" id="qpayMockBanner" style="display:none">
+                            Туршилтын төлбөр (mock). Жинхэнэ QPay credential .env-д тавихад автоматаар live болно.
+                        </div>
+                        <div class="form-text" id="multiStoreHint" style="display:none">
+                            Олон дэлгүүрийн бараа байвал дэлгүүр бүрт тусдаа захиалга үүснэ.
+                        </div>
+                    </div>
+                    <div id="ebarimtBox" class="mb-3">
+                        <label class="form-label fw-bold">И-баримт (eBarimt)</label>
+                        <select name="ebarimt_receiver_type" id="ebarimtType" class="form-select mb-2">
+                            <option value="CITIZEN" selected>Иргэн</option>
+                            <option value="COMPANY">Байгууллага</option>
+                        </select>
+                        <input name="ebarimt_receiver" id="ebarimtReceiver" class="form-control"
+                            placeholder="Байгууллагын регистр / ТТД" style="display:none">
+                        <div class="form-text">Иргэнд баримт шууд үүснэ. Байгууллага бол регистр заавал.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Тэмдэглэл</label>
+                        <textarea name="note" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold">Нийт</span>
+                        <span class="fs-4 text-warning fw-bold" id="cartTotal">0 ₮</span>
+                    </div>
+                    <button class="btn-zamch btn-zamch-primary w-100" type="submit" id="checkoutBtn">Захиалга илгээх</button>
+                    <div id="checkoutMsg" class="small mt-2"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</main>
+{% include "partials/footer.html" %}
+
+<!-- QPay modal -->
+<div class="modal fade" id="qpayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">QPay төлбөр</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="fw-bold fs-5 mb-2" id="qpayAmount"></div>
+                <div id="qpayQrBox" class="mb-3"></div>
+                <div id="qpayBanks" class="d-flex flex-wrap gap-2 justify-content-center mb-3"></div>
+                <div id="qpayStatus" class="text-secondary small mb-2">Төлбөр хүлээж байна...</div>
+                <a id="qpayShortLink" href="#" target="_blank" class="btn btn-outline-dark btn-sm mb-2" style="display:none">QPay холбоос нээх</a>
+                <button id="qpayMockBtn" class="btn btn-warning btn-sm w-100" style="display:none" onclick="simulatePay()">
+                    Mock: Төлсөн гэж тэмдэглэх
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/shop.js?v=ux3"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let pollTimer = null;
+let activeGroupId = null;
+let qpayModal = null;
+let pendingPayment = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    qpayModal = new bootstrap.Modal(document.getElementById('qpayModal'));
+    document.getElementById('qpayModal').addEventListener('hidden.bs.modal', () => {
+        if (activeGroupId) {
+            document.getElementById('pendingPayBox').style.display = '';
+        }
+    });
+    prefillBuyer();
+    checkPendingPay();
+    fetch('/api/qpay/status').then(r => r.json()).then(s => {
+        const banner = document.getElementById('qpayMockBanner');
+        if (banner && s.mock) banner.style.display = '';
+    }).catch(() => {});
+});
+
+function syncDeliveryUI() {
+    const delivery = document.getElementById('deliveryType').value === 'delivery';
+    document.getElementById('addressBox').style.display = delivery ? '' : 'none';
+    const address = document.getElementById('addressInput');
+    address.required = delivery;
+    if (!delivery) address.value = '';
+    const cod = document.getElementById('codOption');
+    cod.textContent = delivery ? 'Хүргэлт дээр төлөх' : 'Дэлгүүрт төлөх';
+}
+document.getElementById('deliveryType').addEventListener('change', syncDeliveryUI);
+
+function syncPayUI() {
+    const method = document.getElementById('paymentMethod').value;
+    document.getElementById('ebarimtBox').style.display = method === 'qpay' ? '' : 'none';
+    document.getElementById('qpayHint').style.display = method === 'qpay' ? '' : 'none';
+}
+document.getElementById('paymentMethod').addEventListener('change', syncPayUI);
+document.getElementById('ebarimtType').addEventListener('change', (e) => {
+    document.getElementById('ebarimtReceiver').style.display =
+        e.target.value === 'COMPANY' ? '' : 'none';
+});
+syncPayUI();
+syncDeliveryUI();
+
+async function prefillBuyer() {
+    try {
+        const me = await (await fetch('/api/auth/me')).json();
+        if (!me.user) return;
+        const name = document.getElementById('customerName');
+        const phone = document.getElementById('customerPhone');
+        if (name && !name.value) name.value = me.user.name || '';
+        if (phone && !phone.value) phone.value = me.user.phone || '';
+    } catch (_) {}
+}
+
+async function checkPendingPay() {
+    try {
+        const last = await (await fetch('/api/orders/last-checkout')).json();
+        const data = last.data;
+        if (!data || data.payment_method !== 'qpay' || data.payment_status === 'paid') return;
+        if (!data.payment_group_id || !data.payment) return;
+        const check = await (await fetch('/api/qpay/check/' + data.payment_group_id)).json();
+        if (check.paid) return;
+        pendingPayment = data.payment;
+        activeGroupId = data.payment_group_id;
+        document.getElementById('pendingPayBox').style.display = '';
+    } catch (_) {}
+}
+
+document.getElementById('resumePayBtn')?.addEventListener('click', () => {
+    if (pendingPayment) showQpay(pendingPayment);
+    else if (activeGroupId) location.href = '/payment/' + encodeURIComponent(activeGroupId);
+});
+
+async function loadCart() {
+    const res = await fetch('/api/cart');
+    const data = await res.json();
+    const box = document.getElementById('cartList');
+    const panel = document.getElementById('checkoutPanel');
+    document.getElementById('cartTotal').textContent = money(data.total);
+
+    if (!data.items?.length) {
+        box.innerHTML = emptyState('Сагс хоосон', `<a href="/" class="btn-zamch btn-zamch-dark btn-sm">Бараа хайх</a>`);
+        document.getElementById('multiStoreHint').style.display = 'none';
+        if (panel) panel.style.display = 'none';
+        return;
+    }
+
+    if (panel) panel.style.display = '';
+    const storeIds = new Set(data.items.map(i => i.store_id).filter(Boolean));
+    document.getElementById('multiStoreHint').style.display = storeIds.size > 1 ? '' : 'none';
+
+    box.innerHTML = data.items.map(item => `
+      <div class="d-flex gap-3 align-items-center border-bottom py-3">
+        <img src="${escapeHtml(safeUrl((item.images||[])[0]))}" width="72" height="72" class="rounded-3 object-fit-cover" alt="">
+        <div class="flex-grow-1">
+          <div class="fw-bold">${escapeHtml(item.title)}</div>
+          <div class="small text-secondary">${escapeHtml(item.store_name)}</div>
+          <div class="text-warning fw-bold">${money(item.price)}</div>
+        </div>
+        <input type="number" class="form-control" style="width:80px" min="1" value="${item.quantity}"
+          onchange="updateQty(${item.id}, this.value)">
+        <button class="btn btn-sm btn-outline-danger" onclick="removeItem(${item.id})"><i class="bi bi-trash"></i></button>
+      </div>
+    `).join('');
+    refreshCartBadge();
+}
+
+async function updateQty(id, qty) {
+    const fd = new FormData();
+    fd.append('item_id', id);
+    fd.append('quantity', qty);
+    const res = await fetch('/api/cart/update', { method: 'POST', body: fd });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.detail || 'Тоо ширхэг шинэчилж чадсангүй');
+    }
+    loadCart();
+}
+
+async function removeItem(id) {
+    const fd = new FormData();
+    fd.append('item_id', id);
+    await fetch('/api/cart/remove', { method: 'POST', body: fd });
+    loadCart();
+}
+
+function showQpay(payment) {
+    activeGroupId = payment.payment_group_id;
+    pendingPayment = payment;
+    document.getElementById('qpayAmount').textContent = money(payment.amount);
+
+    const qrBox = document.getElementById('qpayQrBox');
+    if (payment.qr_image) {
+        const src = payment.qr_image.startsWith('data:')
+            ? payment.qr_image
+            : `data:image/png;base64,${payment.qr_image}`;
+        qrBox.innerHTML = `<img src="${src}" alt="QPay QR" style="max-width:240px;width:100%;border-radius:12px">`;
+    } else {
+        qrBox.innerHTML = `<div class="p-3 bg-light rounded-3 small text-break">${escapeHtml(payment.qr_text || 'QR бэлэн биш')}</div>`;
+    }
+
+    const banks = document.getElementById('qpayBanks');
+    banks.innerHTML = (payment.urls || []).map(u => `
+        <a class="btn btn-sm btn-outline-primary" href="${escapeHtml(u.link)}" target="_blank" rel="noopener">
+            ${escapeHtml(u.name || 'Банк')}
+        </a>
+    `).join('');
+
+    const short = document.getElementById('qpayShortLink');
+    if (payment.short_url) {
+        short.href = payment.short_url;
+        short.style.display = '';
+    } else {
+        short.style.display = 'none';
+    }
+
+    document.getElementById('qpayMockBtn').style.display = payment.mock ? '' : 'none';
+    document.getElementById('qpayStatus').textContent = 'Төлбөр хүлээж байна...';
+    document.getElementById('qpayStatus').className = 'text-secondary small mb-2';
+    qpayModal.show();
+    startPolling(payment.payment_group_id);
+}
+
+function startPolling(groupId) {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(async () => {
+        try {
+            const res = await fetch('/api/qpay/check/' + groupId);
+            const data = await res.json();
+            if (data.paid) {
+                clearInterval(pollTimer);
+                activeGroupId = null;
+                pendingPayment = null;
+                const lot = data.ebarimt_lottery ? ` · И-баримт: ${data.ebarimt_lottery}` : '';
+                document.getElementById('qpayStatus').textContent = 'Төлбөр амжилттай!' + lot;
+                document.getElementById('qpayStatus').className = 'text-success fw-bold small mb-2';
+                setTimeout(() => {
+                    qpayModal.hide();
+                    location.href = '/order-success?group=' + encodeURIComponent(groupId);
+                }, 900);
+            }
+        } catch (_) {}
+    }, 2500);
+}
+
+async function simulatePay() {
+    if (!activeGroupId) return;
+    const res = await fetch('/api/qpay/mock-pay/' + activeGroupId, { method: 'POST' });
+    if (res.ok) {
+        document.getElementById('qpayStatus').textContent = 'Төлбөр амжилттай! (mock)';
+        document.getElementById('qpayStatus').className = 'text-success fw-bold small mb-2';
+        const groupId = activeGroupId;
+        activeGroupId = null;
+        pendingPayment = null;
+        setTimeout(() => {
+            qpayModal.hide();
+            location.href = '/order-success?group=' + encodeURIComponent(groupId);
+        }, 700);
+    }
+}
+
+document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const btn = document.getElementById('checkoutBtn');
+    btn.disabled = true;
+    const res = await fetch('/api/orders', { method: 'POST', body: fd });
+    const msg = document.getElementById('checkoutMsg');
+    btn.disabled = false;
+    if (res.ok) {
+        const data = await res.json();
+        e.target.reset();
+        syncPayUI();
+        syncDeliveryUI();
+        loadCart();
+        if (data.payment_method === 'qpay' && data.payment) {
+            msg.className = 'small mt-2 text-success';
+            msg.textContent = 'Захиалга үүслээ. QPay-ээр төлнө үү.';
+            showQpay(data.payment);
+        } else {
+            location.href = '/order-success';
+        }
+    } else {
+        const err = await res.json().catch(() => ({}));
+        msg.className = 'small mt-2 text-danger';
+        msg.textContent = typeof err.detail === 'string' ? err.detail : 'Захиалга амжилтгүй';
+    }
+});
+
+loadCart().catch(console.error);
+</script>
+</body>
+</html>

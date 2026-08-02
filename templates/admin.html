@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ самбар - ЗАМЧ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/style.css?v=ux2">
+</head>
+<body class="site-bg">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-warning" href="/"><img src="/static/logo.jpg" height="40" alt=""> ЗАМЧ Админ</a>
+        <div class="ms-auto" id="authNav"></div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <div id="gate" class="card border-0 shadow-sm rounded-4 p-4 text-center" style="display:none">
+        <h4 class="fw-bold">Админ эрх шаардлагатай</h4>
+        <a href="/login?next=/admin" class="btn btn-warning mt-3">Нэвтрэх</a>
+    </div>
+
+    <div id="panel" style="display:none">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h2 class="fw-bold text-white mb-0">Админ самбар</h2>
+            <button class="btn btn-outline-light btn-sm" onclick="refreshAll()">Шинэчлэх</button>
+        </div>
+
+        <div id="stats" class="row g-3 mb-3"></div>
+        <div id="integrations" class="mb-4"></div>
+
+        <ul class="nav nav-pills mb-3 gap-2" id="adminTabs">
+            <li class="nav-item"><button class="nav-link active" data-tab="stores">Дэлгүүр</button></li>
+            <li class="nav-item"><button class="nav-link" data-tab="categories">Ангилал</button></li>
+            <li class="nav-item"><button class="nav-link" data-tab="orders">Захиалга</button></li>
+            <li class="nav-item"><button class="nav-link" data-tab="products">Бараа</button></li>
+            <li class="nav-item"><button class="nav-link" data-tab="moderation">Хяналт</button></li>
+            <li class="nav-item"><button class="nav-link" data-tab="users">Хэрэглэгч</button></li>
+            <li class="nav-item"><button class="nav-link" data-tab="shipments">Хүргэлт</button></li>
+        </ul>
+
+        <div class="card border-0 shadow-sm rounded-4 p-3">
+            <div id="tab-stores" class="tab-pane"></div>
+            <div id="tab-categories" class="tab-pane" style="display:none"></div>
+            <div id="tab-orders" class="tab-pane" style="display:none"></div>
+            <div id="tab-products" class="tab-pane" style="display:none"></div>
+            <div id="tab-moderation" class="tab-pane" style="display:none"></div>
+            <div id="tab-users" class="tab-pane" style="display:none"></div>
+            <div id="tab-shipments" class="tab-pane" style="display:none"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/shop.js?v=ux2"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const statusLabels = {
+    pending: 'Шинэ', confirmed: 'Батлагдсан', preparing: 'Бэлдэж байна',
+    out_for_delivery: 'Хүргэлтэнд', completed: 'Дууссан', cancelled: 'Цуцлагдсан'
+};
+
+document.querySelectorAll('#adminTabs .nav-link').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#adminTabs .nav-link').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+        document.getElementById('tab-' + btn.dataset.tab).style.display = '';
+    });
+});
+
+async function init() {
+    const me = await (await fetch('/api/auth/me')).json();
+    if (!me.user) {
+        document.getElementById('gate').style.display = '';
+        return;
+    }
+    if (me.user.role !== 'admin') {
+        document.getElementById('gate').style.display = '';
+        document.getElementById('gate').innerHTML = '<h4 class="fw-bold">Админ эрх байхгүй</h4><a href="/" class="btn btn-dark mt-3">Нүүр</a>';
+        return;
+    }
+    document.getElementById('panel').style.display = '';
+    await refreshAll();
+}
+
+async function refreshAll() {
+    await Promise.all([loadStats(), loadStores(), loadCategories(), loadOrders(), loadProducts(), loadModeration(), loadUsers(), loadShipments()]);
+}
+
+async function loadStats() {
+    const s = await (await fetch('/api/admin/stats')).json();
+    document.getElementById('stats').innerHTML = [
+        ['Хэрэглэгч', s.users],
+        ['Дэлгүүр', s.stores_active + ' / ' + s.stores],
+        ['Хүлээгдсэн дэлгүүр', s.stores_pending],
+        ['Бараа', s.products_active],
+        ['Захиалга', s.orders],
+        ['Төлөгдсөн дүн', money(s.revenue_paid)],
+    ].map(([label, val]) => `
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="card border-0 shadow-sm rounded-4 p-3 h-100 text-center">
+          <div class="small text-secondary">${label}</div>
+          <div class="fw-bold fs-5">${val}</div>
+        </div>
+      </div>
+    `).join('');
+
+    const qpay = s.qpay || {};
+    const delivery = s.delivery || {};
+    const qpayLive = qpay.mode === 'live' || (qpay.configured && !s.qpay_mock);
+    const provider = delivery.active_provider || 'manual';
+    const providerMeta = (delivery.providers || {})[provider] || {};
+    document.getElementById('integrations').innerHTML = `
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="fw-bold mb-2">Холболт (гадаад)</div>
+        <div class="row g-2 small">
+          <div class="col-md-4">
+            <span class="badge ${qpayLive ? 'bg-success' : 'bg-warning text-dark'}">${qpayLive ? 'QPay live' : 'QPay mock'}</span>
+            <div class="text-secondary mt-1">eBarimt: ${qpay.ebarimt_enabled ? 'идэвхтэй' : 'унтраасан'}</div>
+            ${qpayLive ? '' : '<div class="text-secondary">.env дээр QPAY_* бөглөөд restart</div>'}
+          </div>
+          <div class="col-md-4">
+            <span class="badge bg-secondary">Хүргэлт: ${escapeHtml(provider)}</span>
+            <div class="text-secondary mt-1">${escapeHtml(providerMeta.description || '')}</div>
+            <div class="text-secondary">ready: ${providerMeta.ready ? 'тийм' : 'үгүй (URL тохируулна)'}</div>
+          </div>
+          <div class="col-md-4 text-secondary">
+            Credential ирэхэд зөвхөн .env солиод сервер restart хийнэ. Код бэлэн.
+          </div>
+        </div>
+      </div>`;
+}
+
+async function loadStores() {
+    const data = (await (await fetch('/api/admin/stores')).json()).data || [];
+    document.getElementById('tab-stores').innerHTML = `
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>ID</th><th>Нэр</th><th>Эзэн</th><th>Байршил</th><th>Төлөв</th><th></th></tr></thead>
+          <tbody>
+            ${data.map(s => `
+              <tr>
+                <td>${s.id}</td>
+                <td class="fw-bold">${escapeHtml(s.name)}</td>
+                <td class="small">${escapeHtml(s.owner_name || '')}<br>${escapeHtml(s.owner_phone || '')}</td>
+                <td>${escapeHtml(s.location || '')}</td>
+                <td>
+                  <span class="badge ${s.is_approved ? 'bg-success' : 'bg-warning text-dark'}">${s.is_approved ? 'Батлагдсан' : 'Хүлээгдэж буй'}</span>
+                  <span class="badge ${s.is_active ? 'bg-secondary' : 'bg-danger'}">${s.is_active ? 'Идэвхтэй' : 'Идэвхгүй'}</span>
+                </td>
+                <td class="text-nowrap">
+                  ${s.is_approved
+                    ? `<button class="btn btn-sm btn-outline-warning" onclick="setStoreApproved(${s.id},0)">Цуцлах</button>`
+                    : `<button class="btn btn-sm btn-success" onclick="setStoreApproved(${s.id},1)">Батлах</button>`}
+                  <button class="btn btn-sm btn-outline-secondary" onclick="setStoreActive(${s.id}, ${s.is_active ? 0 : 1})">${s.is_active ? 'Идэвхгүй' : 'Идэвхтэй'}</button>
+                </td>
+              </tr>`).join('') || '<tr><td colspan="6" class="text-secondary">Дэлгүүр байхгүй</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+}
+
+async function setStoreApproved(id, approved) {
+    const fd = new FormData();
+    fd.append('approved', approved);
+    await fetch('/api/admin/stores/' + id + '/approve', { method: 'POST', body: fd });
+    loadStores(); loadStats();
+}
+
+async function setStoreActive(id, active) {
+    const fd = new FormData();
+    fd.append('active', active);
+    await fetch('/api/admin/stores/' + id + '/active', { method: 'POST', body: fd });
+    loadStores(); loadStats();
+}
+
+async function loadCategories() {
+    const data = (await (await fetch('/api/admin/categories')).json()).data || [];
+    document.getElementById('tab-categories').innerHTML = `
+      <form id="catForm" class="row g-2 mb-3">
+        <div class="col-md-4"><input name="name" class="form-control" placeholder="Ангиллын нэр" required></div>
+        <div class="col-md-3"><input name="slug" class="form-control" placeholder="slug (заавал биш)"></div>
+        <div class="col-md-3"><input name="icon" class="form-control" placeholder="bi-grid" value="bi-grid"></div>
+        <div class="col-md-2"><button class="btn btn-warning w-100 fw-bold">Нэмэх</button></div>
+      </form>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>ID</th><th>Нэр</th><th>Slug</th><th>Icon</th><th></th></tr></thead>
+          <tbody>
+            ${data.map(c => `
+              <tr>
+                <td>${c.id}</td>
+                <td>${escapeHtml(c.name)}</td>
+                <td><code>${escapeHtml(c.slug)}</code></td>
+                <td><i class="bi ${escapeHtml(c.icon || 'bi-grid')}"></i> ${escapeHtml(c.icon || '')}</td>
+                <td><button class="btn btn-sm btn-outline-danger" onclick="deleteCategory(${c.id})">Устгах</button></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    document.getElementById('catForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const res = await fetch('/api/admin/categories', { method: 'POST', body: new FormData(e.target) });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            alert(err.detail || 'Алдаа');
+            return;
+        }
+        loadCategories();
+    });
+}
+
+async function deleteCategory(id) {
+    if (!confirm('Устгах уу?')) return;
+    const res = await fetch('/api/admin/categories/' + id + '/delete', { method: 'POST' });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.detail || 'Алдаа');
+        return;
+    }
+    loadCategories();
+}
+
+async function loadOrders() {
+    const data = (await (await fetch('/api/admin/orders')).json()).data || [];
+    document.getElementById('tab-orders').innerHTML = `
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>#</th><th>Дэлгүүр</th><th>Худалдан авагч</th><th>Төлбөр</th><th>Дүн</th><th>Статус</th></tr></thead>
+          <tbody>
+            ${data.map(o => `
+              <tr>
+                <td>${o.id}</td>
+                <td>${escapeHtml(o.store_name || '')}</td>
+                <td class="small">${escapeHtml(o.customer_name)}<br>${escapeHtml(o.customer_phone)}</td>
+                <td class="small">${escapeHtml(o.payment_method)} · ${o.payment_status === 'paid' ? 'Төлсөн' : 'Төлөөгүй'}</td>
+                <td class="text-warning fw-bold">${money(o.total)}</td>
+                <td>
+                  <select class="form-select form-select-sm" style="min-width:150px" onchange="setOrderStatus(${o.id}, this.value)">
+                    ${Object.keys(statusLabels).map(k => `<option value="${k}" ${o.status===k?'selected':''}>${statusLabels[k]}</option>`).join('')}
+                  </select>
+                </td>
+              </tr>`).join('') || '<tr><td colspan="6" class="text-secondary">Захиалга байхгүй</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+}
+
+async function setOrderStatus(id, status) {
+    const fd = new FormData();
+    fd.append('status', status);
+    await fetch('/api/admin/orders/' + id + '/status', { method: 'POST', body: fd });
+    loadOrders(); loadStats();
+}
+
+async function loadProducts() {
+    const [productsRes, storesRes, catsRes] = await Promise.all([
+        fetch('/api/admin/products'),
+        fetch('/api/admin/stores'),
+        fetch('/api/admin/categories'),
+    ]);
+    const data = (await productsRes.json()).data || [];
+    const stores = (await storesRes.json()).data || [];
+    const cats = (await catsRes.json()).data || [];
+    const storeOpts = stores.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (#${s.id})</option>`).join('');
+    const catOpts = cats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+
+    document.getElementById('tab-products').innerHTML = `
+      <form id="adminProductForm" class="border rounded-4 p-3 mb-4 bg-light">
+        <div class="fw-bold mb-2">Бараа нэмэх (админ — аппгүйгээр)</div>
+        <div class="row g-2">
+          <div class="col-md-4">
+            <label class="form-label small mb-1">Дэлгүүр</label>
+            <select name="store_id" class="form-select form-select-sm" required>${storeOpts || '<option value="">Дэлгүүр байхгүй</option>'}</select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small mb-1">Ангилал</label>
+            <select name="category_id" class="form-select form-select-sm" required>${catOpts}</select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label small mb-1">Төрөл</label>
+            <select name="listing_kind" class="form-select form-select-sm">
+              <option value="dugui">Дугуй</option>
+              <option value="obud">Обуд</option>
+              <option value="combo">Обудтай дугуй</option>
+            </select>
+          </div>
+          <div class="col-md-6"><input name="title" class="form-control form-control-sm" placeholder="Гарчиг" required></div>
+          <div class="col-md-3"><input name="brand" class="form-control form-control-sm" placeholder="Брэнд"></div>
+          <div class="col-md-3"><input name="car_make" class="form-control form-control-sm" placeholder="Машин (Prius…)"></div>
+          <div class="col-md-2"><input name="price" type="number" class="form-control form-control-sm" placeholder="Үнэ" required></div>
+          <div class="col-md-2"><input name="stock" type="number" class="form-control form-control-sm" placeholder="Нөөц" value="1"></div>
+          <div class="col-md-2"><input name="width" type="number" class="form-control form-control-sm" placeholder="Өргөн"></div>
+          <div class="col-md-2"><input name="ratio" type="number" class="form-control form-control-sm" placeholder="Ratio"></div>
+          <div class="col-md-2"><input name="diameter" type="number" class="form-control form-control-sm" placeholder="R"></div>
+          <div class="col-md-2"><input name="bolt_pattern" class="form-control form-control-sm" placeholder="5x100"></div>
+          <div class="col-md-4"><input name="files" type="file" class="form-control form-control-sm" accept="image/*" multiple></div>
+          <div class="col-md-8"><input name="description" class="form-control form-control-sm" placeholder="Тайлбар"></div>
+          <div class="col-md-4"><button class="btn btn-warning btn-sm w-100 fw-bold">Нэмээд нийтлэх</button></div>
+        </div>
+        <div id="adminProductMsg" class="small mt-2 text-danger"></div>
+      </form>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>ID</th><th>Гарчиг</th><th>Дэлгүүр</th><th>Үнэ</th><th>Нөөц</th><th></th></tr></thead>
+          <tbody>
+            ${data.map(p => `
+              <tr>
+                <td>${p.id}</td>
+                <td><a href="/product/${p.id}" target="_blank">${escapeHtml(p.title)}</a></td>
+                <td>${escapeHtml(p.store_name || '')}</td>
+                <td>${money(p.price)}</td>
+                <td>${p.stock}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-secondary" onclick="setProductActive(${p.id}, ${p.is_active ? 0 : 1})">
+                    ${p.is_active ? 'Нуух' : 'Идэвхжүүлэх'}
+                  </button>
+                </td>
+              </tr>`).join('') || '<tr><td colspan="6" class="text-secondary">Бараа байхгүй</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+
+    const form = document.getElementById('adminProductForm');
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('adminProductMsg');
+            msg.textContent = '';
+            const res = await fetch('/api/admin/products', { method: 'POST', body: new FormData(form) });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                msg.textContent = err.detail || 'Алдаа гарлаа';
+                return;
+            }
+            loadProducts();
+            loadStats();
+        });
+    }
+}
+
+async function setProductActive(id, active) {
+    const fd = new FormData();
+    fd.append('active', active);
+    await fetch('/api/admin/products/' + id + '/active', { method: 'POST', body: fd });
+    loadProducts(); loadStats();
+}
+
+async function loadModeration() {
+    const data = (await (await fetch('/api/admin/moderation')).json()).data || [];
+    document.getElementById('tab-moderation').innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div><h5 class="fw-bold mb-0">Барааны хяналт</h5><small class="text-secondary">${data.length} хүлээгдэж байна</small></div>
+      </div>
+      <div class="row g-3">
+        ${data.map(p => `
+          <div class="col-md-6 col-xl-4">
+            <div class="border rounded-4 p-3 h-100">
+              <div class="d-flex gap-3">
+                ${p.images && p.images[0] ? `<img src="${escapeHtml(p.images[0])}" alt="" class="rounded-3" style="width:76px;height:76px;object-fit:cover">` : ''}
+                <div class="min-width-0">
+                  <div class="fw-bold">${escapeHtml(p.title)}</div>
+                  <div class="small text-secondary">${escapeHtml(p.store_name || '')} · ${money(p.price)}</div>
+                  <div class="small text-warning mt-1">${(JSON.parse(p.moderation_flags || '[]')).map(escapeHtml).join(', ') || 'Гараар шалгах'}</div>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-success btn-sm flex-grow-1" onclick="moderationDecision(${p.id}, 'published')">Нийтлэх</button>
+                <button class="btn btn-outline-danger btn-sm flex-grow-1" onclick="moderationDecision(${p.id}, 'rejected')">Буцаах</button>
+              </div>
+            </div>
+          </div>`).join('') || '<div class="text-secondary">Хүлээгдэж буй бараа алга</div>'}
+      </div>`;
+}
+
+async function moderationDecision(id, decision) {
+    const note = decision === 'rejected' ? (prompt('Буцаах шалтгаан') || '') : '';
+    if (decision === 'rejected' && !note) return;
+    const fd = new FormData();
+    fd.append('decision', decision);
+    fd.append('note', note);
+    const res = await fetch('/api/admin/moderation/' + id + '/decision', { method: 'POST', body: fd });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.detail || 'Алдаа');
+        return;
+    }
+    loadModeration();
+    loadProducts();
+}
+
+async function loadUsers() {
+    const data = (await (await fetch('/api/admin/users')).json()).data || [];
+    document.getElementById('tab-users').innerHTML = `
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>ID</th><th>Нэр</th><th>Утас</th><th>Role</th></tr></thead>
+          <tbody>
+            ${data.map(u => `
+              <tr>
+                <td>${u.id}</td>
+                <td>${escapeHtml(u.name)}</td>
+                <td>${escapeHtml(u.phone)}</td>
+                <td>
+                  <select class="form-select form-select-sm" style="max-width:140px" onchange="setUserRole(${u.id}, this.value)">
+                    ${['buyer','seller','admin'].map(r => `<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}
+                  </select>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+}
+
+async function setUserRole(id, role) {
+    const fd = new FormData();
+    fd.append('role', role);
+    await fetch('/api/admin/users/' + id + '/role', { method: 'POST', body: fd });
+    loadUsers(); loadStats();
+}
+
+async function loadShipments() {
+    const data = (await (await fetch('/api/admin/shipments')).json()).data || [];
+    document.getElementById('tab-shipments').innerHTML = `
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>ID</th><th>Order</th><th>Provider</th><th>Статус</th><th>Job</th><th>Хаяг</th></tr></thead>
+          <tbody>
+            ${data.map(s => `
+              <tr>
+                <td>${s.id}</td>
+                <td>#${s.order_id}</td>
+                <td><code>${escapeHtml(s.provider)}</code></td>
+                <td>${escapeHtml(s.status)}</td>
+                <td class="small">${escapeHtml(s.provider_job_id || '-')}</td>
+                <td class="small">${escapeHtml(s.dropoff_address || '')}</td>
+              </tr>`).join('') || '<tr><td colspan="6" class="text-secondary">Хүргэлт байхгүй</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+}
+
+init().catch(console.error);
+</script>
+</body>
+</html>

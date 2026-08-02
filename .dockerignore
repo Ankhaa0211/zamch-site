@@ -1,0 +1,13 @@
+.git
+.cursor
+.pytest_cache
+__pycache__
+*.py[cod]
+*.db
+.env
+.DS_Store
+data/
+photos/*
+!photos/.gitkeep
+tests/
+.pytest_cache/

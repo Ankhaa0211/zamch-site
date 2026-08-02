@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Нэвтрэх - ЗАМЧ</title>
+    {% include "partials/head_meta.html" with context %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css?v=ux3">
+</head>
+<body>
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="text-center mb-4">
+            <a href="/" class="text-decoration-none text-dark">
+                <img src="/static/logo.jpg" height="48" alt="ЗАМЧ" style="border-radius:10px;margin:0 auto 0.75rem">
+                <div style="font-family:var(--font-display);font-weight:800;font-size:1.6rem;letter-spacing:-0.03em">ЗАМЧ</div>
+            </a>
+        </div>
+        <h3 class="text-center mb-3">Нэвтрэх</h3>
+        <form id="loginForm">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Утас</label>
+                <input name="phone" class="form-control" pattern="[6-9][0-9]{7}" maxlength="8" inputmode="numeric" autocomplete="tel" required>
+                <div class="form-text">8 оронтой утасны дугаар (жишээ: 99112233)</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Нууц үг</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button class="btn-zamch btn-zamch-primary w-100">Нэвтрэх</button>
+            <div id="msg" class="small mt-2 text-danger"></div>
+        </form>
+        <div class="text-center mt-3 small">
+            <a href="/forgot-password" id="forgotLink">Нууц үг сэргээх</a>
+        </div>
+        <div class="text-center mt-2 small">Бүртгэлгүй юу? <a href="/register" id="registerLink">Бүртгүүлэх</a></div>
+    </div>
+</div>
+<script>
+const params = new URLSearchParams(location.search);
+const nextUrl = params.get('next') || '';
+if (nextUrl) {
+    const reg = document.getElementById('registerLink');
+    if (reg) reg.href = '/register?next=' + encodeURIComponent(nextUrl);
+    const forgot = document.getElementById('forgotLink');
+    if (forgot) forgot.href = '/forgot-password?next=' + encodeURIComponent(nextUrl);
+}
+function safeNext(url) {
+    if (!url || !url.startsWith('/') || url.startsWith('//')) return null;
+    return url;
+}
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const res = await fetch('/api/auth/login', { method: 'POST', body: new FormData(e.target) });
+    if (res.ok) {
+        const data = await res.json();
+        const dest = safeNext(nextUrl);
+        location.href = dest || (data.role === 'admin' ? '/admin' : '/');
+    } else {
+        const err = await res.json().catch(() => ({}));
+        document.getElementById('msg').textContent = err.detail || 'Алдаа гарлаа';
+    }
+});
+</script>
+</body>
+</html>

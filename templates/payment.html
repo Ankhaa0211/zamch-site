@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Төлбөр - ЗАМЧ</title>
+    {% include "partials/head_meta.html" with context %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css?v=ux3">
+</head>
+<body class="site-bg">
+<div class="container my-5" style="max-width:520px">
+    <div class="card border-0 shadow-sm rounded-4 p-4 text-center">
+        <h3 class="fw-bold mb-2">QPay төлбөр</h3>
+        <div class="alert alert-warning py-2 px-3 small" id="mockBanner" style="display:none">
+            Туршилтын төлбөр (mock)
+        </div>
+        <div id="status" class="text-secondary mb-3">Шалгаж байна...</div>
+        <div id="amount" class="fs-4 text-warning fw-bold mb-3"></div>
+        <div id="qrBox" class="mb-3"></div>
+        <div id="banks" class="d-flex flex-wrap gap-2 justify-content-center mb-3"></div>
+        <a id="shortLink" href="#" target="_blank" class="btn btn-outline-dark btn-sm mb-2" style="display:none">QPay холбоос нээх</a>
+        <button id="mockBtn" class="btn btn-warning fw-bold w-100 mb-2" style="display:none" onclick="simulate()">
+            Mock: Төлсөн гэж тэмдэглэх
+        </button>
+        <a href="/" class="btn btn-outline-secondary w-100">Дэлгүүр рүү</a>
+    </div>
+</div>
+<script src="/static/shop.js?v=ux3"></script>
+<script>
+const groupId = {{ payment_group_id|tojson }};
+
+function renderPayment(payment) {
+    const qrBox = document.getElementById('qrBox');
+    if (payment.qr_image) {
+        const src = payment.qr_image.startsWith('data:')
+            ? payment.qr_image
+            : `data:image/png;base64,${payment.qr_image}`;
+        qrBox.innerHTML = `<img src="${src}" alt="QPay QR" style="max-width:240px;width:100%;border-radius:12px">`;
+    } else if (payment.qr_text) {
+        qrBox.innerHTML = `<div class="p-3 bg-light rounded-3 small text-break">${escapeHtml(payment.qr_text)}</div>`;
+    }
+    document.getElementById('banks').innerHTML = (payment.urls || []).map(u => `
+        <a class="btn btn-sm btn-outline-primary" href="${escapeHtml(u.link)}" target="_blank" rel="noopener">
+            ${escapeHtml(u.name || 'Банк')}
+        </a>
+    `).join('');
+    const short = document.getElementById('shortLink');
+    if (payment.short_url && !String(payment.short_url).includes('/payment/' + groupId)) {
+        short.href = payment.short_url;
+        short.style.display = '';
+    }
+    if (payment.mock) {
+        document.getElementById('mockBtn').style.display = '';
+        const b = document.getElementById('mockBanner');
+        if (b) b.style.display = '';
+    }
+}
+
+async function loadResume() {
+    try {
+        const data = await (await fetch('/api/qpay/resume/' + groupId)).json();
+        if (data.amount) document.getElementById('amount').textContent = money(data.amount);
+        if (data.payment) renderPayment(data.payment);
+        if (data.paid) {
+            document.getElementById('status').textContent = 'Төлбөр амжилттай!';
+            document.getElementById('status').className = 'text-success fw-bold mb-3';
+            setTimeout(() => {
+                location.href = '/order-success?group=' + encodeURIComponent(groupId);
+            }, 800);
+            return true;
+        }
+        document.getElementById('status').textContent = 'Төлбөр хүлээж байна...';
+    } catch (_) {
+        document.getElementById('status').textContent = 'Төлбөр шалгаж чадсангүй';
+    }
+    return false;
+}
+
+async function check() {
+    const res = await fetch('/api/qpay/check/' + groupId);
+    const data = await res.json();
+    document.getElementById('amount').textContent = money(data.amount || 0);
+    if (data.mock) {
+        document.getElementById('mockBtn').style.display = '';
+        const b = document.getElementById('mockBanner');
+        if (b) b.style.display = '';
+    }
+    if (data.paid) {
+        document.getElementById('status').textContent = 'Төлбөр амжилттай!';
+        document.getElementById('status').className = 'text-success fw-bold mb-3';
+        setTimeout(() => {
+            location.href = '/order-success?group=' + encodeURIComponent(groupId);
+        }, 800);
+    } else {
+        document.getElementById('status').textContent = 'Төлбөр хүлээж байна...';
+    }
+}
+
+async function simulate() {
+    await fetch('/api/qpay/mock-pay/' + groupId, { method: 'POST' });
+    check();
+}
+
+loadResume().then((paid) => {
+    if (!paid) setInterval(check, 2500);
+});
+</script>
+</body>
+</html>
