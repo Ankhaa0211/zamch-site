@@ -931,7 +931,7 @@ a {
     overflow: hidden;
     background:
         linear-gradient(180deg, rgba(12, 14, 18, 0.25) 0%, rgba(12, 14, 18, 0.78) 55%, rgba(12, 14, 18, 0.94) 100%),
-        url('/photos/cover.jpg') center/cover no-repeat;
+        url('/static/cover.jpg') center/cover no-repeat;
 }
 
 /* Home: cover fades into soft paper (product area) */
@@ -949,7 +949,7 @@ a {
             rgba(242, 243, 245, 0.72) 82%,
             var(--paper) 100%
         ),
-        url('/photos/cover.jpg') center / cover no-repeat;
+        url('/static/cover.jpg') center / cover no-repeat;
     background-color: var(--paper);
 }
 
@@ -2012,7 +2012,7 @@ body.site-bg .form-select {
     padding: 2rem 1rem;
     background:
         linear-gradient(180deg, rgba(12, 14, 18, 0.55), rgba(12, 14, 18, 0.82)),
-        url('/photos/cover.jpg') center/cover no-repeat;
+        url('/static/cover.jpg') center/cover no-repeat;
 }
 
 .auth-card {
