@@ -1313,6 +1313,36 @@ def _create_phone_otp(session: Session, phone: str, purpose: str = "store_phone"
     return code, row
 
 
+@app.get("/api/mobile/app-version")
+def api_mobile_app_version():
+    """Public: latest seller APK version for in-app update checks."""
+    data: Dict[str, Any] = {}
+    path = os.path.join("static", "seller-app.json")
+    if os.path.isfile(path):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+            if isinstance(loaded, dict):
+                data = loaded
+        except Exception:
+            data = {}
+    try:
+        version_code = int(
+            os.getenv("SELLER_APP_VERSION_CODE")
+            or data.get("versionCode")
+            or 1
+        )
+    except (TypeError, ValueError):
+        version_code = 1
+    apk_url = (os.getenv("SELLER_APK_URL") or data.get("apkUrl") or "").strip()
+    return {
+        "version": (os.getenv("SELLER_APP_VERSION") or data.get("version") or "1.0.0").strip(),
+        "versionCode": version_code,
+        "apkUrl": apk_url,
+        "notes": str(data.get("notes") or "").strip(),
+    }
+
+
 @app.get("/api/mobile/me")
 def api_mobile_me(
     authorization: Optional[str] = Header(None),
