@@ -40,57 +40,83 @@ def seed() -> None:
     seed_categories()
 
     with Session(engine) as session:
-        existing = session.exec(select(User).where(User.phone == DEMO_PHONE)).first()
-        if existing:
-            store = session.exec(select(Store).where(Store.owner_id == existing.id)).first()
-            products = (
-                session.exec(select(Product).where(Product.store_id == store.id)).all()
-                if store
-                else []
-            )
-            print(f"Demo already seeded (user=#{existing.id}, store=#{getattr(store, 'id', None)}, products={len(products)})")
-            print(f"Seller login: {DEMO_PHONE} / {DEMO_PASSWORD}")
-            return
-
         cats = {c.slug: c for c in session.exec(select(Category)).all()}
         dugui = cats.get("dugui")
         obud = cats.get("obud")
         if not dugui or not obud:
             raise SystemExit("Categories missing — start the app once or run seed_categories")
 
-        seller = User(
-            name="Demo Худалдагч",
-            phone=DEMO_PHONE,
-            password_hash=hash_password(DEMO_PASSWORD),
-            role="seller",
-        )
-        session.add(seller)
-        session.commit()
-        session.refresh(seller)
-
-        store = Store(
-            owner_id=seller.id,
-            name=DEMO_STORE_NAME,
-            description="Туршилтын дэлгүүр — Приус, Land 200, RAV4-д түгээмэл хэмжээ.",
-            phone=DEMO_PHONE,
-            location="Улаанбаатар, Баянзүрх",
-            logo="/static/logo.jpg",
-            is_active=True,
-            is_approved=True,
-        )
-        session.add(store)
-        session.commit()
-        session.refresh(store)
-
-        session.add(
-            Warehouse(
-                store_id=store.id,
-                name="Үндсэн агуулах",
-                address="Улаанбаатар",
-                is_default=True,
-                is_active=True,
+        seller = session.exec(select(User).where(User.phone == DEMO_PHONE)).first()
+        if not seller:
+            seller = User(
+                name="Demo Худалдагч",
+                phone=DEMO_PHONE,
+                password_hash=hash_password(DEMO_PASSWORD),
+                role="seller",
             )
-        )
+            session.add(seller)
+            session.commit()
+            session.refresh(seller)
+
+        store = session.exec(select(Store).where(Store.owner_id == seller.id)).first()
+        if not store:
+            store = Store(
+                owner_id=seller.id,
+                name=DEMO_STORE_NAME,
+                description="Туршилтын дэлгүүр — Приус, Land 200, RAV4-д түгээмэл хэмжээ.",
+                phone=DEMO_PHONE,
+                location="Улаанбаатар, Баянзүрх",
+                logo="/static/logo.jpg",
+                is_active=True,
+                is_approved=True,
+            )
+            session.add(store)
+            session.commit()
+            session.refresh(store)
+        else:
+            # Ensure demo store is visible on the public web
+            store.is_active = True
+            store.is_approved = True
+            store.logo = store.logo or "/static/logo.jpg"
+            session.add(store)
+            session.commit()
+
+        warehouse = session.exec(
+            select(Warehouse).where(
+                Warehouse.store_id == store.id, Warehouse.is_default == True
+            )
+        ).first()
+        if not warehouse:
+            session.add(
+                Warehouse(
+                    store_id=store.id,
+                    name="Үндсэн агуулах",
+                    address="Улаанбаатар",
+                    is_default=True,
+                    is_active=True,
+                )
+            )
+            session.commit()
+
+        existing_products = session.exec(
+            select(Product).where(Product.store_id == store.id)
+        ).all()
+        if existing_products:
+            # Re-publish / restock so listings show on the public web
+            for product in existing_products:
+                product.is_active = True
+                product.publish_status = "published"
+                if int(product.stock or 0) < 1:
+                    product.stock = 1
+                if not product.published_at:
+                    product.published_at = _now()
+                session.add(product)
+            session.commit()
+            print(
+                f"Demo already seeded (user=#{seller.id}, store=#{store.id}, products={len(existing_products)}) — refreshed visibility"
+            )
+            print(f"Seller login: {DEMO_PHONE} / {DEMO_PASSWORD}")
+            return
 
         img = json.dumps(["/static/placeholder.jpg"])
         published = "published"

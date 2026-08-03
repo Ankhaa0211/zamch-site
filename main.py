@@ -526,7 +526,7 @@ def bootstrap_admin():
 
 
 def maybe_seed_demo_marketplace() -> None:
-    """If DB has no stores, seed demo catalog so public web is not empty.
+    """If public catalog is empty, seed demo store/products.
 
     Opt out: SEED_DEMO_ON_BOOT=0
     """
@@ -534,12 +534,25 @@ def maybe_seed_demo_marketplace() -> None:
     if flag in ("0", "false", "no", "off"):
         return
     with Session(engine) as session:
-        if session.exec(select(Store.id).limit(1)).first() is not None:
+        # Only skip when shoppers would already see at least one listing
+        visible = session.exec(
+            select(Product.id)
+            .join(Store, Store.id == Product.store_id)
+            .where(
+                Product.is_active == True,
+                Product.publish_status == "published",
+                Product.stock > 0,
+                Store.is_active == True,
+                Store.is_approved == True,
+            )
+            .limit(1)
+        ).first()
+        if visible is not None:
             return
     try:
         from seed_demo import seed
 
-        print("Marketplace empty — seeding demo store/products")
+        print("Public catalog empty — seeding demo store/products")
         seed()
     except Exception as exc:
         print(f"WARNING: demo seed failed: {exc}")
@@ -4553,6 +4566,43 @@ def _slugify(text: str) -> str:
     raw = re.sub(r"\s+", "-", (text or "").strip().lower())
     raw = re.sub(r"[^a-z0-9\-а-яөүё]", "", raw, flags=re.IGNORECASE)
     return raw[:60] or f"cat-{uuid.uuid4().hex[:6]}"
+
+
+@app.get("/api/health")
+def api_health(session: Session = Depends(get_session)):
+    """Public readiness probe for deploy checks."""
+    approved_stores = session.exec(
+        select(Store).where(Store.is_active == True, Store.is_approved == True)
+    ).all()
+    store_ids = [s.id for s in approved_stores]
+    product_count = 0
+    if store_ids:
+        product_count = len(
+            session.exec(
+                select(Product).where(
+                    Product.store_id.in_(store_ids),
+                    Product.is_active == True,
+                    Product.publish_status == "published",
+                    Product.stock > 0,
+                )
+            ).all()
+        )
+    return {
+        "ok": True,
+        "brands": len(CAR_CATALOG),
+        "stores": len(approved_stores),
+        "products": product_count,
+    }
+
+
+@app.post("/api/admin/seed-demo")
+def api_admin_seed_demo(request: Request, session: Session = Depends(get_session)):
+    """Admin: ensure demo store + published products exist for public testing."""
+    require_admin(request, session)
+    from seed_demo import seed
+
+    seed()
+    return {"ok": True}
 
 
 @app.get("/api/admin/stats")
