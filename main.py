@@ -3151,7 +3151,30 @@ async def api_mobile_update_product(
             _sync_product_stock(session, product.id)
         else:
             product.stock = int(stock)
-    if product.publish_status == "published":
+    content_touched = any(
+        value is not None
+        for value in (
+            category_id,
+            title,
+            price,
+            description,
+            sku,
+            brand,
+            condition,
+            pack_type,
+            car_make,
+            listing_kind,
+            width,
+            ratio,
+            diameter,
+            tread_percent,
+            bolt_pattern,
+            wheel_type,
+            keep_images,
+            clear_video,
+        )
+    ) or bool(files) or bool(video and getattr(video, "filename", None))
+    if content_touched and product.publish_status == "published":
         product.publish_status = "draft"
         product.rejection_reason = None
     session.add(product)
@@ -3389,6 +3412,38 @@ def api_mobile_submit_product(
     }
 
 
+@app.post("/api/mobile/products/{product_id}/unpublish")
+def api_mobile_unpublish_product(
+    product_id: int,
+    authorization: Optional[str] = Header(None),
+    session: Session = Depends(get_session),
+):
+    _, store = require_mobile_seller(authorization, session)
+    product = session.get(Product, product_id)
+    if not product or product.store_id != store.id:
+        raise HTTPException(status_code=404, detail="Бүтээгдэхүүн олдсонгүй")
+    if product.publish_status not in ("published", "pending_review"):
+        raise HTTPException(status_code=409, detail="Вэб дээрх зар биш байна")
+    previous = product.publish_status
+    product.publish_status = "draft"
+    product.rejection_reason = None
+    session.add(product)
+    session.add(
+        ModerationEvent(
+            product_id=product.id,
+            actor_type="seller",
+            actor_id=store.owner_id,
+            action="unpublish",
+            from_status=previous,
+            to_status="draft",
+            note="seller_unpublish",
+        )
+    )
+    session.commit()
+    category = session.get(Category, product.category_id)
+    return product_to_dict(product, store, category)
+
+
 def _order_payload(session: Session, order: Order) -> Dict[str, Any]:
     items = session.exec(select(OrderItem).where(OrderItem.order_id == order.id)).all()
     store = session.get(Store, order.store_id)
@@ -3402,12 +3457,34 @@ def _order_payload(session: Session, order: Order) -> Dict[str, Any]:
 
 
 def _seller_order_payload(session: Session, order: Order) -> Dict[str, Any]:
-    """Seller mobile payload — includes buyer contact for fulfillment."""
-    data = _order_payload(session, order)
-    data["customer_label"] = (order.customer_phone or "").strip() or f"Захиалагч #{order.id}"
-    data["has_delivery_address"] = bool((order.address or "").strip())
-    return data
-
+    """Seller mobile payload — no buyer phone/address."""
+    items = session.exec(select(OrderItem).where(OrderItem.order_id == order.id)).all()
+    return {
+        "id": order.id,
+        "store_id": order.store_id,
+        "status": order.status,
+        "inventory_status": order.inventory_status,
+        "confirmation_expires_at": order.confirmation_expires_at,
+        "confirmed_at": order.confirmed_at,
+        "cancelled_at": order.cancelled_at,
+        "cancellation_reason": order.cancellation_reason,
+        "total": order.total,
+        "created_at": order.created_at,
+        "delivery_type": order.delivery_type,
+        "payment_method": order.payment_method,
+        "payment_status": order.payment_status,
+        "note": order.note,
+        "customer_name": (order.customer_name or "").strip() or f"Захиалагч #{order.id}",
+        "has_delivery_address": bool((order.address or "").strip()),
+        "items": [
+            {
+                "title": item.title,
+                "quantity": item.quantity,
+                "price": item.price,
+            }
+            for item in items
+        ],
+    }
 
 ORDER_STATUS_TRANSITIONS = {
     "pending": {"confirmed", "cancelled"},
