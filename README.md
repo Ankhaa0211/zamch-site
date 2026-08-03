@@ -91,3 +91,29 @@ npm run eas:build:apk
 ```sh
 python3 -m pytest -q
 ```
+
+## Админ самбар (`/admin`)
+
+### Нэвтрэх
+
+1. `.env` дээр тохируулна:
+   ```env
+   ADMIN_PHONE=99112233
+   ADMIN_PASSWORD=your-secure-password
+   ADMIN_NAME=ЗАМЧ Админ
+   ```
+2. Сервер **restart** — `bootstrap_admin()` admin хэрэглэгч үүсгэнэ/шинэчилнэ.
+3. Хөтчөөр [`/login?next=/admin`](http://127.0.0.1:8000/login?next=/admin) нээнэ.
+4. `ADMIN_PHONE` + `ADMIN_PASSWORD`-аар нэвтэрнэ.
+
+Шууд: [`http://127.0.0.1:8000/admin`](http://127.0.0.1:8000/admin) — нэвтрээгүй бол заавар + «Нэвтрэх» холбоос гарна.
+
+### Admin panel-д юу хийх вэ
+
+- **Checklist** — хяналт хүлээлт, батлах бэлэн дэлгүүр, шинэ захиалга
+- **Дэлгүүр** — утас/байршил баталгаажуулалт, батлах/идэвхгүй болгох
+- **Хяналт** — seller publish илгээсэн бараа шалгах
+- **Захиалга / Хүргэлт** — end-to-end flow cross-check
+- **Бараа** — аппгүйгээр туршилтын бараа нэмэх
+
+Role `admin` биш бол `/admin` хаагдана. Одоогийн admin-аар **Хэрэглэгч** tab-аас role өөрчилж болно.

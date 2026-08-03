@@ -6,6 +6,13 @@
             <a href="/for-sellers">Худалдагчдад</a>
             <a href="/privacy">Нууцлал</a>
             <a href="/terms">Нөхцөл</a>
+            {% if support_phone %}
+            <a href="tel:{{ support_phone }}">{{ support_phone }}</a>
+            {% elif support_email %}
+            <a href="mailto:{{ support_email }}">{{ support_email }}</a>
+            {% else %}
+            <a href="/how-it-works#contact">Холбоо барих</a>
+            {% endif %}
             <span>© 2026</span>
         </p>
     </div>

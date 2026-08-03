@@ -17,9 +17,22 @@
 </nav>
 
 <div class="container my-4">
-    <div id="gate" class="card border-0 shadow-sm rounded-4 p-4 text-center" style="display:none">
-        <h4 class="fw-bold">Админ эрх шаардлагатай</h4>
-        <a href="/login?next=/admin" class="btn btn-warning mt-3">Нэвтрэх</a>
+    <div id="gate" class="card border-0 shadow-sm rounded-4 p-4" style="display:none">
+        <h4 class="fw-bold text-center mb-3">Админ эрх шаардлагатай</h4>
+        <div class="small text-secondary mb-4">
+            <p class="mb-2"><strong>Админ нэвтрэх:</strong></p>
+            <ol class="mb-3 ps-3">
+                <li><code>.env</code> дээр <code>ADMIN_PHONE</code> + <code>ADMIN_PASSWORD</code> тохируулна</li>
+                <li>Сервер restart — admin хэрэглэгч автоматаар үүснэ</li>
+                <li>Доорх «Нэвтрэх» → утас + нууц үгээр орно</li>
+                <li><code>/admin</code> хуудас нээгдэнэ</li>
+            </ol>
+            <p class="mb-0">Жишээ: <code>ADMIN_PHONE=99112233</code>, <code>ADMIN_PASSWORD=...</code> (8 оронтой утас, 6+ тэмдэгт нууц)</p>
+        </div>
+        <div class="text-center">
+            <a href="/login?next=/admin" class="btn btn-warning">Нэвтрэх</a>
+            <a href="/" class="btn btn-outline-secondary ms-2">Нүүр</a>
+        </div>
     </div>
 
     <div id="panel" style="display:none">
@@ -29,16 +42,17 @@
         </div>
 
         <div id="stats" class="row g-3 mb-3"></div>
+        <div id="checklist" class="mb-4"></div>
         <div id="integrations" class="mb-4"></div>
 
-        <ul class="nav nav-pills mb-3 gap-2" id="adminTabs">
+        <ul class="nav nav-pills mb-3 gap-2 flex-wrap" id="adminTabs">
             <li class="nav-item"><button class="nav-link active" data-tab="stores">Дэлгүүр</button></li>
-            <li class="nav-item"><button class="nav-link" data-tab="categories">Ангилал</button></li>
+            <li class="nav-item"><button class="nav-link" data-tab="moderation">Хяналт <span id="modBadge" class="badge bg-danger ms-1" style="display:none">0</span></button></li>
             <li class="nav-item"><button class="nav-link" data-tab="orders">Захиалга</button></li>
             <li class="nav-item"><button class="nav-link" data-tab="products">Бараа</button></li>
-            <li class="nav-item"><button class="nav-link" data-tab="moderation">Хяналт</button></li>
-            <li class="nav-item"><button class="nav-link" data-tab="users">Хэрэглэгч</button></li>
             <li class="nav-item"><button class="nav-link" data-tab="shipments">Хүргэлт</button></li>
+            <li class="nav-item"><button class="nav-link" data-tab="categories">Ангилал</button></li>
+            <li class="nav-item"><button class="nav-link" data-tab="users">Хэрэглэгч</button></li>
         </ul>
 
         <div class="card border-0 shadow-sm rounded-4 p-3">
@@ -60,14 +74,24 @@ const statusLabels = {
     pending: 'Шинэ', confirmed: 'Батлагдсан', preparing: 'Бэлдэж байна',
     out_for_delivery: 'Хүргэлтэнд', completed: 'Дууссан', cancelled: 'Цуцлагдсан'
 };
+let storeFilter = 'all';
+let lastStats = null;
+
+function verifyBadge(ok, label) {
+    return `<span class="badge ${ok ? 'bg-success' : 'bg-secondary'}">${label}</span>`;
+}
+
+function switchTab(name) {
+    document.querySelectorAll('#adminTabs .nav-link').forEach(b => {
+        b.classList.toggle('active', b.dataset.tab === name);
+    });
+    document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+    const pane = document.getElementById('tab-' + name);
+    if (pane) pane.style.display = '';
+}
 
 document.querySelectorAll('#adminTabs .nav-link').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('#adminTabs .nav-link').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
-        document.getElementById('tab-' + btn.dataset.tab).style.display = '';
-    });
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
 async function init() {
@@ -91,12 +115,13 @@ async function refreshAll() {
 
 async function loadStats() {
     const s = await (await fetch('/api/admin/stats')).json();
+    lastStats = s;
     document.getElementById('stats').innerHTML = [
         ['Хэрэглэгч', s.users],
-        ['Дэлгүүр', s.stores_active + ' / ' + s.stores],
-        ['Хүлээгдсэн дэлгүүр', s.stores_pending],
-        ['Бараа', s.products_active],
-        ['Захиалга', s.orders],
+        ['Дэлгүүр идэвхтэй', s.stores_active + ' / ' + s.stores],
+        ['Батлах бэлэн', s.stores_ready_for_approval || 0],
+        ['Хяналт хүлээлт', s.moderation_pending || 0],
+        ['Захиалга шинэ', s.orders_pending || 0],
         ['Төлөгдсөн дүн', money(s.revenue_paid)],
     ].map(([label, val]) => `
       <div class="col-6 col-md-4 col-lg-2">
@@ -106,6 +131,45 @@ async function loadStats() {
         </div>
       </div>
     `).join('');
+
+    const modBadge = document.getElementById('modBadge');
+    if (s.moderation_pending > 0) {
+        modBadge.style.display = '';
+        modBadge.textContent = s.moderation_pending;
+    } else {
+        modBadge.style.display = 'none';
+    }
+
+    const tasks = [];
+    if ((s.moderation_pending || 0) > 0) {
+        tasks.push({ label: `${s.moderation_pending} бараа хяналтад хүлээж байна`, tab: 'moderation', urgent: true });
+    }
+    if ((s.stores_ready_for_approval || 0) > 0) {
+        tasks.push({ label: `${s.stores_ready_for_approval} дэлгүүр батлахад бэлэн (утас+байршил OK)`, tab: 'stores', filter: 'ready', urgent: true });
+    }
+    if ((s.stores_unverified || 0) > 0) {
+        tasks.push({ label: `${s.stores_unverified} дэлгүүр баталгаажаагүй (seller app)`, tab: 'stores', filter: 'unverified' });
+    }
+    if ((s.orders_pending || 0) > 0) {
+        tasks.push({ label: `${s.orders_pending} шинэ захиалга`, tab: 'orders' });
+    }
+    if (s.qpay_mock) {
+        tasks.push({ label: 'QPay mock горим — production-д credential тохируулна', tab: null });
+    }
+
+    document.getElementById('checklist').innerHTML = tasks.length ? `
+      <div class="card border-0 shadow-sm rounded-4 p-3">
+        <div class="fw-bold mb-2"><i class="bi bi-list-check"></i> Өнөөдрийн checklist</div>
+        <ul class="list-unstyled mb-0 small">
+          ${tasks.map(t => `
+            <li class="d-flex align-items-center gap-2 py-1 ${t.urgent ? 'fw-semibold' : ''}">
+              <i class="bi ${t.urgent ? 'bi-exclamation-circle text-warning' : 'bi-circle text-secondary'}"></i>
+              ${t.tab
+                ? `<button type="button" class="btn btn-link btn-sm p-0 text-start" onclick="goTask('${t.tab}'${t.filter ? ",'" + t.filter + "'" : ''})">${escapeHtml(t.label)}</button>`
+                : `<span>${escapeHtml(t.label)}</span>`}
+            </li>`).join('')}
+        </ul>
+      </div>` : '';
 
     const qpay = s.qpay || {};
     const delivery = s.delivery || {};
@@ -133,19 +197,42 @@ async function loadStats() {
       </div>`;
 }
 
+function goTask(tab, filter) {
+    if (filter) storeFilter = filter;
+    switchTab(tab);
+    if (tab === 'stores') loadStores();
+}
+
 async function loadStores() {
     const data = (await (await fetch('/api/admin/stores')).json()).data || [];
+    const filtered = data.filter(s => {
+        if (storeFilter === 'ready') return s.is_active && !s.is_approved && s.store_verified;
+        if (storeFilter === 'unverified') return !s.store_verified;
+        if (storeFilter === 'pending') return !s.is_approved;
+        return true;
+    });
     document.getElementById('tab-stores').innerHTML = `
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        <button type="button" class="btn btn-sm ${storeFilter === 'all' ? 'btn-warning' : 'btn-outline-secondary'}" onclick="storeFilter='all'; loadStores()">Бүгд</button>
+        <button type="button" class="btn btn-sm ${storeFilter === 'ready' ? 'btn-warning' : 'btn-outline-secondary'}" onclick="storeFilter='ready'; loadStores()">Батлах бэлэн</button>
+        <button type="button" class="btn btn-sm ${storeFilter === 'unverified' ? 'btn-warning' : 'btn-outline-secondary'}" onclick="storeFilter='unverified'; loadStores()">Баталгаажаагүй</button>
+        <button type="button" class="btn btn-sm ${storeFilter === 'pending' ? 'btn-warning' : 'btn-outline-secondary'}" onclick="storeFilter='pending'; loadStores()">Батлаагүй</button>
+      </div>
       <div class="table-responsive">
-        <table class="table align-middle mb-0">
-          <thead><tr><th>ID</th><th>Нэр</th><th>Эзэн</th><th>Байршил</th><th>Төлөв</th><th></th></tr></thead>
+        <table class="table align-middle mb-0 table-sm">
+          <thead><tr>
+            <th>ID</th><th>Нэр</th><th>Эзэн / утас</th><th>Байршил</th>
+            <th>Баталгаажуулалт</th><th>Бараа</th><th>Төлөв</th><th></th>
+          </tr></thead>
           <tbody>
-            ${data.map(s => `
-              <tr>
+            ${filtered.map(s => `
+              <tr class="${s.is_active && !s.is_approved && s.store_verified ? 'table-warning' : ''}">
                 <td>${s.id}</td>
                 <td class="fw-bold">${escapeHtml(s.name)}</td>
-                <td class="small">${escapeHtml(s.owner_name || '')}<br>${escapeHtml(s.owner_phone || '')}</td>
-                <td>${escapeHtml(s.location || '')}</td>
+                <td class="small">${escapeHtml(s.owner_name || '')}<br>${escapeHtml(s.phone || s.owner_phone || '')}</td>
+                <td class="small" style="max-width:180px">${escapeHtml(s.location || '')}</td>
+                <td class="small text-nowrap">${verifyBadge(s.phone_verified, 'Утас')} ${verifyBadge(s.location_verified, 'Байршил')}</td>
+                <td class="small">${s.products_published || 0} нийтлэгдсэн${(s.products_pending || 0) > 0 ? ' · ' + s.products_pending + ' хяналт' : ''}</td>
                 <td>
                   <span class="badge ${s.is_approved ? 'bg-success' : 'bg-warning text-dark'}">${s.is_approved ? 'Батлагдсан' : 'Хүлээгдэж буй'}</span>
                   <span class="badge ${s.is_active ? 'bg-secondary' : 'bg-danger'}">${s.is_active ? 'Идэвхтэй' : 'Идэвхгүй'}</span>
@@ -156,7 +243,7 @@ async function loadStores() {
                     : `<button class="btn btn-sm btn-success" onclick="setStoreApproved(${s.id},1)">Батлах</button>`}
                   <button class="btn btn-sm btn-outline-secondary" onclick="setStoreActive(${s.id}, ${s.is_active ? 0 : 1})">${s.is_active ? 'Идэвхгүй' : 'Идэвхтэй'}</button>
                 </td>
-              </tr>`).join('') || '<tr><td colspan="6" class="text-secondary">Дэлгүүр байхгүй</td></tr>'}
+              </tr>`).join('') || '<tr><td colspan="8" class="text-secondary">Дэлгүүр байхгүй</td></tr>'}
           </tbody>
         </table>
       </div>`;
@@ -228,13 +315,14 @@ async function loadOrders() {
     document.getElementById('tab-orders').innerHTML = `
       <div class="table-responsive">
         <table class="table align-middle mb-0">
-          <thead><tr><th>#</th><th>Дэлгүүр</th><th>Худалдан авагч</th><th>Төлбөр</th><th>Дүн</th><th>Статус</th></tr></thead>
+          <thead><tr><th>#</th><th>Дэлгүүр</th><th>Худалдан авагч</th><th>Хүргэлт</th><th>Төлбөр</th><th>Дүн</th><th>Статус</th></tr></thead>
           <tbody>
             ${data.map(o => `
-              <tr>
+              <tr class="${o.status === 'pending' ? 'table-warning' : ''}">
                 <td>${o.id}</td>
                 <td>${escapeHtml(o.store_name || '')}</td>
                 <td class="small">${escapeHtml(o.customer_name)}<br>${escapeHtml(o.customer_phone)}</td>
+                <td class="small">${o.delivery_type === 'pickup' ? 'Очиж авах' : 'Хүргэлт'}</td>
                 <td class="small">${escapeHtml(o.payment_method)} · ${o.payment_status === 'paid' ? 'Төлсөн' : 'Төлөөгүй'}</td>
                 <td class="text-warning fw-bold">${money(o.total)}</td>
                 <td>
@@ -242,7 +330,7 @@ async function loadOrders() {
                     ${Object.keys(statusLabels).map(k => `<option value="${k}" ${o.status===k?'selected':''}>${statusLabels[k]}</option>`).join('')}
                   </select>
                 </td>
-              </tr>`).join('') || '<tr><td colspan="6" class="text-secondary">Захиалга байхгүй</td></tr>'}
+              </tr>`).join('') || '<tr><td colspan="7" class="text-secondary">Захиалга байхгүй</td></tr>'}
           </tbody>
         </table>
       </div>`;
@@ -293,7 +381,7 @@ async function loadProducts() {
           <div class="col-md-2"><input name="price" type="number" class="form-control form-control-sm" placeholder="Үнэ" required></div>
           <div class="col-md-2"><input name="stock" type="number" class="form-control form-control-sm" placeholder="Нөөц" value="1"></div>
           <div class="col-md-2"><input name="width" type="number" class="form-control form-control-sm" placeholder="Өргөн"></div>
-          <div class="col-md-2"><input name="ratio" type="number" class="form-control form-control-sm" placeholder="Ratio"></div>
+          <div class="col-md-2"><input name="ratio" type="number" class="form-control form-control-sm" placeholder="Өндөр"></div>
           <div class="col-md-2"><input name="diameter" type="number" class="form-control form-control-sm" placeholder="R"></div>
           <div class="col-md-2"><input name="bolt_pattern" class="form-control form-control-sm" placeholder="5x100"></div>
           <div class="col-md-4"><input name="files" type="file" class="form-control form-control-sm" accept="image/*" multiple></div>
@@ -304,13 +392,14 @@ async function loadProducts() {
       </form>
       <div class="table-responsive">
         <table class="table align-middle mb-0">
-          <thead><tr><th>ID</th><th>Гарчиг</th><th>Дэлгүүр</th><th>Үнэ</th><th>Нөөц</th><th></th></tr></thead>
+          <thead><tr><th>ID</th><th>Гарчиг</th><th>Дэлгүүр</th><th>Төлөв</th><th>Үнэ</th><th>Нөөц</th><th></th></tr></thead>
           <tbody>
             ${data.map(p => `
               <tr>
                 <td>${p.id}</td>
                 <td><a href="/product/${p.id}" target="_blank">${escapeHtml(p.title)}</a></td>
                 <td>${escapeHtml(p.store_name || '')}</td>
+                <td class="small"><code>${escapeHtml(p.publish_status || 'draft')}</code></td>
                 <td>${money(p.price)}</td>
                 <td>${p.stock}</td>
                 <td>
@@ -318,7 +407,7 @@ async function loadProducts() {
                     ${p.is_active ? 'Нуух' : 'Идэвхжүүлэх'}
                   </button>
                 </td>
-              </tr>`).join('') || '<tr><td colspan="6" class="text-secondary">Бараа байхгүй</td></tr>'}
+              </tr>`).join('') || '<tr><td colspan="7" class="text-secondary">Бараа байхгүй</td></tr>'}
           </tbody>
         </table>
       </div>`;
@@ -389,6 +478,7 @@ async function moderationDecision(id, decision) {
     }
     loadModeration();
     loadProducts();
+    loadStats();
 }
 
 async function loadUsers() {

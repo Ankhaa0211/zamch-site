@@ -17,6 +17,13 @@ function money(n) {
     return Number(n || 0).toLocaleString() + ' ₮';
 }
 
+function setPageTitle(parts) {
+    const bits = (Array.isArray(parts) ? parts : [parts])
+        .map((p) => String(p || '').trim())
+        .filter(Boolean);
+    document.title = bits.length ? bits.join(' - ') + ' - ЗАМЧ' : 'ЗАМЧ';
+}
+
 function emptyState(message, actionsHtml = '') {
     return `<div class="empty-state">
         <p class="empty-state-msg">${message}</p>
@@ -227,6 +234,7 @@ async function loadAuthNav() {
         box.innerHTML = `
           ${adminLink}
           <a href="/my-orders" class="nav-auth-link">Захиалга</a>
+          <a href="/account" class="nav-auth-link">Профайл</a>
           <button type="button" class="nav-auth-link nav-auth-btn" id="logoutBtn">Гарах</button>`;
         document.getElementById('logoutBtn')?.addEventListener('click', async () => {
             await fetch('/api/auth/logout', { method: 'POST' });

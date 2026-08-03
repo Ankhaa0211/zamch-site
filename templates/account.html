@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профайл - ЗАМЧ</title>
+    {% set page_title = 'Профайл - ЗАМЧ' %}
+    {% include "partials/head_meta.html" with context %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/static/style.css?v=ux4">
+</head>
+<body class="zamch-shell site-bg">
+{% include "partials/nav.html" %}
+
+<main class="zamch-main">
+    <div class="container py-4 py-md-5" style="max-width:480px">
+        <header class="page-head">
+            <p class="page-kicker">Бүртгэл</p>
+            <h1 class="page-title">Профайл</h1>
+        </header>
+
+        <div class="panel mb-3">
+            <h2 class="h6 fw-bold mb-3" style="font-family:var(--font-display)">Нэр</h2>
+            <form id="nameForm">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Нэр</label>
+                    <input name="name" id="profileName" class="form-control" minlength="2" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Утас</label>
+                    <input id="profilePhone" class="form-control" disabled>
+                    <div class="form-text">Утасны дугаарыг солих боломжгүй</div>
+                </div>
+                <button class="btn-zamch btn-zamch-primary w-100" type="submit">Хадгалах</button>
+                <div id="nameMsg" class="small mt-2"></div>
+            </form>
+        </div>
+
+        <div class="panel">
+            <h2 class="h6 fw-bold mb-3" style="font-family:var(--font-display)">Нууц үг солих</h2>
+            <form id="passForm">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Одоогийн нууц үг</label>
+                    <input type="password" name="current_password" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Шинэ нууц үг</label>
+                    <input type="password" name="new_password" class="form-control" minlength="6" required>
+                    <div class="form-text">Дор хаяж 6 тэмдэгт</div>
+                </div>
+                <button class="btn-zamch btn-zamch-dark w-100" type="submit">Нууц үг солих</button>
+                <div id="passMsg" class="small mt-2"></div>
+            </form>
+        </div>
+    </div>
+</main>
+
+{% include "partials/footer.html" %}
+
+<script src="/static/shop.js?v=ux4"></script>
+<script>
+async function loadProfile() {
+    const me = await (await fetch('/api/auth/me')).json();
+    if (!me.user) {
+        location.href = '/login?next=' + encodeURIComponent('/account');
+        return;
+    }
+    document.getElementById('profileName').value = me.user.name || '';
+    document.getElementById('profilePhone').value = me.user.phone || '';
+    setPageTitle(['Профайл']);
+}
+
+document.getElementById('nameForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('nameMsg');
+    const res = await fetch('/api/auth/profile', { method: 'POST', body: new FormData(e.target) });
+    if (res.ok) {
+        msg.className = 'small mt-2 text-success';
+        msg.textContent = 'Хадгаллаа';
+    } else {
+        const err = await res.json().catch(() => ({}));
+        msg.className = 'small mt-2 text-danger';
+        msg.textContent = err.detail || 'Алдаа гарлаа';
+    }
+});
+
+document.getElementById('passForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = document.getElementById('passMsg');
+    const res = await fetch('/api/auth/change-password', { method: 'POST', body: new FormData(e.target) });
+    if (res.ok) {
+        msg.className = 'small mt-2 text-success';
+        msg.textContent = 'Нууц үг шинэчлэгдлээ';
+        e.target.reset();
+    } else {
+        const err = await res.json().catch(() => ({}));
+        msg.className = 'small mt-2 text-danger';
+        msg.textContent = err.detail || 'Алдаа гарлаа';
+    }
+});
+
+loadProfile().catch(console.error);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
