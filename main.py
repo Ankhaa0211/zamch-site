@@ -2745,11 +2745,15 @@ def _walk_in_sale_payload(
     session: Session, movement: StockMovement, product: Optional[Product] = None
 ) -> Dict[str, Any]:
     product = product or session.get(Product, movement.product_id)
+    qty = abs(int(movement.quantity_delta or 0))
+    unit_price = int(product.price or 0) if product else 0
     return {
         "id": movement.id,
         "product_id": movement.product_id,
         "product_title": product.title if product else "",
-        "quantity": abs(int(movement.quantity_delta or 0)),
+        "quantity": qty,
+        "unit_price": unit_price,
+        "line_total": unit_price * qty,
         "note": movement.reason,
         "created_at": movement.created_at,
         "voided": False,
@@ -2797,7 +2801,16 @@ def api_mobile_sales(
         item = _walk_in_sale_payload(session, row, products.get(row.product_id))
         item["voided"] = row.id in voided_refs
         data.append(item)
-    return {"day": day_key, "data": data}
+    active = [row for row in data if not row.get("voided")]
+    return {
+        "day": day_key,
+        "data": data,
+        "summary": {
+            "count": len(active),
+            "quantity": sum(int(row.get("quantity") or 0) for row in active),
+            "total": sum(int(row.get("line_total") or 0) for row in active),
+        },
+    }
 
 
 @app.post("/api/mobile/sales")
