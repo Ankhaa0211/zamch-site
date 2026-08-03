@@ -1309,6 +1309,17 @@ def api_mobile_login(
     }
 
 
+@app.post("/api/mobile/auth/reset-password")
+def api_mobile_reset_password(
+    phone: str = Form(...),
+    name: str = Form(...),
+    password: str = Form(...),
+    session: Session = Depends(get_session),
+):
+    """Mobile alias for password reset (phone + registered name)."""
+    return api_reset_password(phone=phone, name=name, password=password, session=session)
+
+
 @app.post("/api/mobile/auth/logout")
 def api_mobile_logout(
     authorization: Optional[str] = Header(None),
