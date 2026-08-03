@@ -7,7 +7,7 @@
     {% include "partials/head_meta.html" with context %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/static/style.css?v=ux4">
+    <link rel="stylesheet" href="/static/style.css?v=ux3">
 </head>
 <body class="zamch-shell site-bg">
 {% include "partials/nav.html" %}
@@ -23,7 +23,7 @@
 
 {% include "partials/footer.html" %}
 
-<script src="/static/shop.js?v=ux4"></script>
+<script src="/static/shop.js?v=ux3"></script>
 <script>
 const statusLabels = {
     pending: 'Хүлээгдэж байна',
@@ -56,44 +56,8 @@ function orderTimeline(order) {
 }
 
 function paymentLabel(order) {
-    let method = order.payment_method;
-    if (method === 'cod') {
-        method = order.delivery_type === 'pickup' ? 'Дэлгүүрт' : 'Хүргэлтээр';
-    } else {
-        const methods = { qpay: 'QPay', bank_transfer: 'Шилжүүлэг' };
-        method = methods[method] || method;
-    }
-    return `${method} · ${order.payment_status === 'paid' ? 'Төлсөн' : 'Төлөөгүй'}`;
-}
-
-function canCancelOrder(order) {
-    return order.payment_status !== 'paid'
-        && (order.status === 'pending' || order.status === 'confirmed');
-}
-
-async function cancelOrder(orderId) {
-    if (!confirm('Захиалга #' + orderId + '-г цуцлах уу?')) return;
-    const res = await fetch('/api/orders/' + orderId + '/cancel', { method: 'POST' });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        alert(err.detail || 'Цуцлаж чадсангүй');
-        return;
-    }
-    loadOrders();
-}
-
-const deliveryStatusLabels = {
-    pending: 'Хүргэлт бэлтгэгдэж байна',
-    queued: 'Хүргэлтийн дараалалд',
-    assigned: 'Хүргэгч томилогдсон',
-    failed: 'Хүргэлтийн алдаа',
-    delivered: 'Хүргэгдсэн'
-};
-
-function deliveryBlock(shipment) {
-    if (!shipment) return '';
-    const label = deliveryStatusLabels[shipment.status] || shipment.status;
-    return `<div class="order-delivery"><i class="bi bi-truck"></i> ${escapeHtml(label)}</div>`;
+    const methods = { qpay: 'QPay', bank_transfer: 'Шилжүүлэг', cod: 'Хүргэлтээр' };
+    return `${methods[order.payment_method] || order.payment_method} · ${order.payment_status === 'paid' ? 'Төлсөн' : 'Төлөөгүй'}`;
 }
 
 async function loadOrders() {
@@ -104,15 +68,6 @@ async function loadOrders() {
     }
     const res = await fetch('/api/orders/mine');
     const orders = (await res.json()).data || [];
-    const deliveryMap = {};
-    await Promise.all(
-        orders.filter(o => o.delivery_type === 'delivery').map(async (order) => {
-            try {
-                const shipRes = await fetch('/api/delivery/shipments/' + order.id);
-                if (shipRes.ok) deliveryMap[order.id] = await shipRes.json();
-            } catch (_) {}
-        })
-    );
     const box = document.getElementById('ordersList');
     if (!orders.length) {
         box.innerHTML = emptyState('Захиалга байхгүй', `<a href="/" class="btn-zamch btn-zamch-primary btn-sm">Бараа хайх</a>`);
@@ -133,14 +88,12 @@ async function loadOrders() {
           </div>
         </div>
         ${orderTimeline(order)}
-        ${deliveryBlock(deliveryMap[order.id])}
         <div class="order-items">
           ${(order.items || []).map(item => `
             <div><span>${escapeHtml(item.title)}</span><strong>× ${Number(item.quantity)}</strong></div>
           `).join('')}
         </div>
         ${order.ebarimt_status ? `<div class="order-ebarimt">И-баримт: ${escapeHtml(order.ebarimt_status)}${order.ebarimt_lottery ? ' · ' + escapeHtml(order.ebarimt_lottery) : ''}</div>` : ''}
-        ${canCancelOrder(order) ? `<div class="order-actions"><button type="button" class="btn btn-sm btn-outline-danger" onclick="cancelOrder(${Number(order.id)})">Цуцлах</button></div>` : ''}
       </article>
     `).join('');
 }

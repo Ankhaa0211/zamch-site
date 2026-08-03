@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Тусламж - ЗАМЧ</title>
-    {% set page_title = 'Тусламж - ЗАМЧ' %}
-    {% set page_description = 'ЗАМЧ захиалга, төлбөр, хүргэлт, буцаалтын тусламж.' %}
     {% include "partials/head_meta.html" with context %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/static/style.css?v=ux4">
+    <link rel="stylesheet" href="/static/style.css?v=ux3">
 </head>
 <body class="zamch-shell site-bg">
 {% include "partials/nav.html" %}
@@ -41,67 +39,17 @@
                     <span class="how-num">3</span>
                     <div>
                         <h3>Төлбөр</h3>
-                        <p>QPay эсвэл хүргэлт/дэлгүүрт төлнө.</p>
+                        <p>QPay эсвэл хүргэлтээр төлнө.</p>
                     </div>
                 </li>
                 <li>
                     <span class="how-num">4</span>
                     <div>
-                        <h3>Хүргэлт эсвэл авах</h3>
-                        <p>ЗАМЧ хүргэнэ, эсвэл дэлгүүрээс очиж авна. Нэвтэрсэн бол «Миний захиалга»-аас явцыг харна.</p>
+                        <h3>Хүргэлт</h3>
+                        <p>ЗАМЧ хүргэнэ. Нэвтэрсэн бол «Захиалга» хэсгээс явцыг харна.</p>
                     </div>
                 </li>
             </ol>
-
-            <div class="help-block">
-                <h2>Хүргэлт ба очиж авах</h2>
-                <p><strong>ЗАМЧ хүргэлт</strong> — Улаанбаатар дотор. Хаягаа зөв оруулна. Хугацааг захиалгын дараа баталгаажуулна.</p>
-                <p><strong>Дэлгүүрээс авах</strong> — ЗАМЧ баталгаажуулсан цагт очино. Төлбөрөө дэлгүүрт төлөх сонголт байвал тэнд төлнө.</p>
-            </div>
-
-            <div class="help-block">
-                <h2>Төлбөр</h2>
-                <p><strong>QPay</strong> — QR эсвэл банкны аппаар төлнө. Төлбөр амжилттай болсны дараа захиалга үргэлжилнэ.</p>
-                <p><strong>Төлөгдөөгүй QPay</strong> — QR хүчинтэй хугацаанд төлнө. Төлөөгүй бол захиалга цуцлагдаж болно. «Миний захиалга» эсвэл төлбөрийн холбоосоор үргэлжлүүлнэ.</p>
-                <p><strong>Хүргэлт/дэлгүүрт төлөх</strong> — бараагаа авах үед бэлэн эсвэл банкны аппаар төлнө.</p>
-            </div>
-
-            <div class="help-block">
-                <h2>Цуцлалт</h2>
-                <p>Төлбөр хийгээгүй эсвэл бэлтгэл эхлээгүй үед цуцлах боломжтой. Аль хэдийн бэлтгэж/хүргэлтэд гарсан бол ЗАМЧ дэмжлэгт холбогдоно.</p>
-            </div>
-
-            <div class="help-block">
-                <h2>Буцаалт · солих</h2>
-                <p>Бараа буруу, гэмтэлтэй, тохирохгүй бол захиалгын дараа аль болох хурдан мэдэгдэнэ. Шийдвэрийг барааны нөхцөл, дэлгүүрийн бодлогоос хамааруулан гаргана.</p>
-            </div>
-
-            <div class="help-block help-contact" id="contact">
-                <h2>Холбоо барих</h2>
-                {% if support_phone or support_email %}
-                <p>Асуулт, захиалга, гомдол — доорх сувгаар холбогдоно уу.</p>
-                <ul class="help-contact-list">
-                    {% if support_phone %}
-                    <li>
-                        <span>Утас</span>
-                        <a href="tel:{{ support_phone }}">{{ support_phone }}</a>
-                    </li>
-                    {% endif %}
-                    {% if support_email %}
-                    <li>
-                        <span>Имэйл</span>
-                        <a href="mailto:{{ support_email }}">{{ support_email }}</a>
-                    </li>
-                    {% endif %}
-                </ul>
-                {% else %}
-                <p class="text-secondary mb-0">
-                    Дэмжлэгийн утас/имэйл тун удахгүй энд гарна.
-                    Одоогоор захиалгынхаа утасны дугаараар бидэнтэй холбогдоход бэлэн байгаарай.
-                </p>
-                {% endif %}
-            </div>
-
             <div class="mt-4 d-flex flex-wrap gap-2">
                 <a href="/" class="btn-zamch btn-zamch-primary">Хайж эхлэх</a>
                 <a href="/for-sellers" class="btn-zamch btn-zamch-dark">Худалдагчдад</a>
@@ -112,7 +60,7 @@
 
 {% include "partials/footer.html" %}
 
-<script src="/static/shop.js?v=ux4"></script>
+<script src="/static/shop.js?v=ux3"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

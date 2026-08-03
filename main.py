@@ -20,7 +20,7 @@ from fastapi import FastAPI, Depends, Form, File, UploadFile, Query, HTTPExcepti
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.responses import RedirectResponse
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy import or_, text
 from sqlmodel import SQLModel, Field, create_engine, Session, select
@@ -55,8 +55,6 @@ CORS_ORIGINS = [
 ADMIN_PHONE = os.environ.get("ADMIN_PHONE", "").strip()
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "").strip()
 ADMIN_NAME = os.environ.get("ADMIN_NAME", "Админ").strip()
-SUPPORT_PHONE = os.environ.get("SUPPORT_PHONE", "").strip()
-SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "").strip()
 
 # --- Models ---
 class User(SQLModel, table=True):
@@ -574,23 +572,6 @@ os.makedirs("templates", exist_ok=True)
 app.mount("/photos", StaticFiles(directory="photos"), name="photos")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-templates.env.globals["support_phone"] = SUPPORT_PHONE
-templates.env.globals["support_email"] = SUPPORT_EMAIL
-templates.env.globals["is_production"] = ENVIRONMENT == "production"
-
-
-@app.exception_handler(404)
-async def not_found_handler(request: Request, exc):
-    """HTML 404 for pages; JSON for /api/*."""
-    detail = getattr(exc, "detail", None) or "Олдсонгүй"
-    if request.url.path.startswith("/api/"):
-        return JSONResponse(status_code=404, content={"detail": detail})
-    return templates.TemplateResponse(
-        "404.html",
-        {"request": request},
-        status_code=404,
-    )
-
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -1047,11 +1028,6 @@ def page_forgot_password(request: Request):
     return templates.TemplateResponse("forgot-password.html", {"request": request})
 
 
-@app.get("/account")
-def page_account(request: Request):
-    return templates.TemplateResponse("account.html", {"request": request})
-
-
 @app.get("/privacy")
 def page_privacy(request: Request):
     return templates.TemplateResponse("privacy.html", {"request": request})
@@ -1064,15 +1040,7 @@ def page_terms(request: Request):
 
 @app.get("/for-sellers")
 def page_for_sellers(request: Request):
-    seller_app = _load_seller_app_meta()
-    apk = seller_app.get("apkUrl") or ""
-    if apk and not apk.startswith("http"):
-        base = (os.getenv("BASE_URL") or f"{request.url.scheme}://{request.url.netloc}").rstrip("/")
-        seller_app = {**seller_app, "apkUrl": f"{base}{apk if apk.startswith('/') else '/' + apk}"}
-    return templates.TemplateResponse(
-        "for-sellers.html",
-        {"request": request, "seller_app": seller_app},
-    )
+    return templates.TemplateResponse("for-sellers.html", {"request": request})
 
 
 @app.get("/how-it-works")
@@ -1171,42 +1139,6 @@ def api_reset_password(
     return {"ok": True}
 
 
-@app.post("/api/auth/profile")
-def api_update_profile(
-    request: Request,
-    name: str = Form(...),
-    session: Session = Depends(get_session),
-):
-    user = require_user(request, session)
-    name = name.strip()
-    if len(name) < 2:
-        raise HTTPException(status_code=400, detail="Нэр дор хаяж 2 тэмдэгт байх ёстой")
-    user.name = name
-    session.add(user)
-    session.commit()
-    return {"ok": True, "name": user.name, "phone": user.phone}
-
-
-@app.post("/api/auth/change-password")
-def api_change_password(
-    request: Request,
-    current_password: str = Form(...),
-    new_password: str = Form(...),
-    session: Session = Depends(get_session),
-):
-    user = require_user(request, session)
-    if not verify_password(current_password, user.password_hash):
-        raise HTTPException(status_code=400, detail="Одоогийн нууц үг буруу")
-    if len(new_password) < 6:
-        raise HTTPException(status_code=400, detail="Шинэ нууц үг дор хаяж 6 тэмдэгт байх ёстой")
-    if current_password == new_password:
-        raise HTTPException(status_code=400, detail="Шинэ нууц үг өөр байх ёстой")
-    user.password_hash = hash_password(new_password)
-    session.add(user)
-    session.commit()
-    return {"ok": True}
-
-
 @app.get("/api/auth/me")
 def api_me(request: Request, session: Session = Depends(get_session)):
     user = get_current_user(request, session)
@@ -1265,7 +1197,7 @@ def api_mobile_register(
         owner_id=user.id,
         name=resolved_store_name,
         phone=(store_phone or phone).strip(),
-        location=location.strip() or "Байршил сонгоно",
+        location=location.strip() or "Улаанбаатар",
         is_active=True,
         is_approved=False,
     )
@@ -1337,18 +1269,8 @@ def api_mobile_logout(
     return {"ok": True}
 
 
-def _store_verification_flags(store: Store) -> Dict[str, bool]:
-    has_location = store.latitude is not None and store.longitude is not None
-    phone_verified = bool(store.phone_verified)
-    return {
-        "phone_verified": phone_verified,
-        "location_verified": has_location,
-        "store_verified": phone_verified and has_location,
-    }
-
-
 def _store_mobile_payload(store: Store) -> Dict[str, Any]:
-    flags = _store_verification_flags(store)
+    has_location = store.latitude is not None and store.longitude is not None
     return {
         "id": store.id,
         "name": store.name,
@@ -1357,9 +1279,9 @@ def _store_mobile_payload(store: Store) -> Dict[str, Any]:
         "location": store.location,
         "latitude": store.latitude,
         "longitude": store.longitude,
-        "phone_verified": flags["phone_verified"],
-        "location_verified": flags["location_verified"],
-        "store_verified": flags["store_verified"],
+        "phone_verified": bool(store.phone_verified),
+        "location_verified": has_location,
+        "store_verified": bool(store.phone_verified) and has_location,
         "logo": store.logo,
         "is_active": store.is_active,
         "is_approved": store.is_approved,
@@ -1402,8 +1324,9 @@ def _create_phone_otp(session: Session, phone: str, purpose: str = "store_phone"
     return code, row
 
 
-def _load_seller_app_meta() -> Dict[str, Any]:
-    """Seller APK release info — env overrides static/seller-app.json."""
+@app.get("/api/mobile/app-version")
+def api_mobile_app_version():
+    """Public: latest seller APK version for in-app update checks."""
     data: Dict[str, Any] = {}
     path = os.path.join("static", "seller-app.json")
     if os.path.isfile(path):
@@ -1423,22 +1346,12 @@ def _load_seller_app_meta() -> Dict[str, Any]:
     except (TypeError, ValueError):
         version_code = 1
     apk_url = (os.getenv("SELLER_APK_URL") or data.get("apkUrl") or "").strip()
-    if apk_url.startswith("/"):
-        base = (os.getenv("BASE_URL") or "").strip().rstrip("/")
-        if base:
-            apk_url = f"{base}{apk_url}"
     return {
         "version": (os.getenv("SELLER_APP_VERSION") or data.get("version") or "1.0.0").strip(),
         "versionCode": version_code,
         "apkUrl": apk_url,
         "notes": str(data.get("notes") or "").strip(),
     }
-
-
-@app.get("/api/mobile/app-version")
-def api_mobile_app_version():
-    """Public: latest seller APK version for in-app update checks."""
-    return _load_seller_app_meta()
 
 
 @app.get("/api/mobile/me")
@@ -1787,99 +1700,6 @@ CAR_CATALOG = _load_car_catalog()
 
 def _norm_text(value: str) -> str:
     return " ".join((value or "").strip().lower().split())
-
-
-def _normalize_car_make_field(raw: Optional[str]) -> Optional[str]:
-    """Collapse seller free-text / multi chips into a stable ·-joined string."""
-    if raw is None:
-        return None
-    parts: List[str] = []
-    seen = set()
-    for part in re.split(r"[·,;/|]+", str(raw)):
-        cleaned = " ".join(part.strip().split())
-        if not cleaned:
-            continue
-        key = cleaned.lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        parts.append(cleaned)
-    return " · ".join(parts) if parts else None
-
-
-def _product_has_real_image(product: Product) -> bool:
-    imgs = parse_images(product.images or "[]")
-    return any(img and "placeholder" not in img for img in imgs)
-
-
-def _store_quality_scores(session: Session, store_ids: List[int]) -> Dict[int, float]:
-    """
-    Rank stores that use the seller app well:
-    fitment coverage, real photos, verified stall, recent walk-in activity.
-    """
-    scores: Dict[int, float] = {sid: 0.0 for sid in store_ids}
-    if not store_ids:
-        return scores
-
-    stores = {
-        s.id: s
-        for s in session.exec(select(Store).where(Store.id.in_(store_ids))).all()
-        if s.id is not None
-    }
-    products = session.exec(
-        select(Product).where(
-            Product.store_id.in_(store_ids),
-            Product.is_active == True,
-            Product.publish_status == "published",
-        )
-    ).all()
-
-    by_store: Dict[int, List[Product]] = {sid: [] for sid in store_ids}
-    for p in products:
-        by_store.setdefault(p.store_id, []).append(p)
-
-    since = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
-    walk_ins: Dict[int, int] = {sid: 0 for sid in store_ids}
-    movements = session.exec(
-        select(StockMovement).where(
-            StockMovement.store_id.in_(store_ids),
-            StockMovement.movement_type == "walk_in",
-            StockMovement.quantity_delta < 0,
-        )
-    ).all()
-    for m in movements:
-        if (m.created_at or "") >= since:
-            walk_ins[m.store_id] = walk_ins.get(m.store_id, 0) + 1
-
-    for sid in store_ids:
-        published = by_store.get(sid) or []
-        store = stores.get(sid)
-        verified = 0.0
-        if store and store.phone_verified and store.latitude is not None and store.longitude is not None:
-            verified = 25.0
-
-        if published:
-            fit_rate = sum(1 for p in published if (p.car_make or "").strip()) / len(published)
-            img_rate = sum(1 for p in published if _product_has_real_image(p)) / len(published)
-        else:
-            fit_rate = 0.0
-            img_rate = 0.0
-
-        activity = min(float(walk_ins.get(sid, 0)), 20.0)
-        scores[sid] = fit_rate * 40.0 + img_rate * 20.0 + verified + activity
-
-    return scores
-
-
-def _rank_public_products(products: List[Product], quality: Dict[int, float]) -> List[Product]:
-    return sorted(
-        products,
-        key=lambda p: (
-            -quality.get(p.store_id, 0.0),
-            0 if (p.car_make or "").strip() else 1,
-            -(p.id or 0),
-        ),
-    )
 
 
 def _fitment_key(width, ratio, diameter, bolt_pattern=None):
@@ -2278,9 +2098,6 @@ def api_products(
         if products:
             is_exact_match = False
 
-    quality = _store_quality_scores(session, approved_store_ids)
-    products = _rank_public_products(products, quality)
-
     stores = {s.id: s for s in session.exec(select(Store)).all()}
     categories = {c.id: c for c in session.exec(select(Category)).all()}
     data = [
@@ -2508,7 +2325,7 @@ async def api_seller_create_product(
         tread_percent=tread_percent,
         bolt_pattern=bolt_pattern,
         wheel_type=wheel_type,
-        car_make=_normalize_car_make_field(car_make),
+        car_make=(car_make or "").strip() or None,
         listing_kind=kind,
     )
     session.add(product)
@@ -3236,7 +3053,7 @@ async def api_mobile_update_product(
                 product.category_id = dugui.id
         product.listing_kind = kind
     if car_make is not None:
-        product.car_make = _normalize_car_make_field(car_make)
+        product.car_make = car_make.strip() or None
     if title is not None and title.strip():
         product.title = title.strip()
     if price is not None:
@@ -3482,7 +3299,7 @@ async def api_mobile_create_product(
         tread_percent=tread_percent,
         bolt_pattern=bolt_pattern,
         wheel_type=wheel_type,
-        car_make=_normalize_car_make_field(car_make),
+        car_make=(car_make or "").strip() or None,
         listing_kind=kind,
         publish_status="draft",
         is_active=True,
@@ -3651,10 +3468,8 @@ def _order_payload(session: Session, order: Order) -> Dict[str, Any]:
 
 
 def _seller_order_payload(session: Session, order: Order) -> Dict[str, Any]:
-    """Seller mobile payload — fulfillment fields when order is active."""
+    """Seller mobile payload — no buyer phone/address."""
     items = session.exec(select(OrderItem).where(OrderItem.order_id == order.id)).all()
-    active = order.status not in ("cancelled",)
-    address = (order.address or "").strip()
     return {
         "id": order.id,
         "store_id": order.store_id,
@@ -3671,9 +3486,7 @@ def _seller_order_payload(session: Session, order: Order) -> Dict[str, Any]:
         "payment_status": order.payment_status,
         "note": order.note,
         "customer_name": (order.customer_name or "").strip() or f"Захиалагч #{order.id}",
-        "customer_phone": (order.customer_phone or "").strip() if active else None,
-        "delivery_address": address if active and order.delivery_type == "delivery" and address else None,
-        "has_delivery_address": bool(address),
+        "has_delivery_address": bool((order.address or "").strip()),
         "items": [
             {
                 "title": item.title,
@@ -3775,13 +3588,6 @@ def api_mobile_order_status(
         raise HTTPException(status_code=404, detail="Захиалга олдсонгүй")
     _apply_order_status(session, order, status, cancellation_reason)
     session.commit()
-
-    if order.delivery_type == "delivery" and status in ("confirmed", "preparing"):
-        try:
-            _ensure_delivery_shipment(session, order)
-        except Exception:
-            pass
-
     return _seller_order_payload(session, order)
 
 
@@ -4163,26 +3969,6 @@ def api_my_orders(request: Request, session: Session = Depends(get_session)):
     return {"data": [_order_payload(session, o) for o in orders]}
 
 
-@app.post("/api/orders/{order_id}/cancel")
-def api_buyer_cancel_order(
-    order_id: int,
-    request: Request,
-    session: Session = Depends(get_session),
-):
-    """Buyer may cancel unpaid orders that are still pending/confirmed."""
-    user = require_user(request, session)
-    order = session.get(Order, order_id)
-    if not order or order.user_id != user.id:
-        raise HTTPException(status_code=404, detail="Захиалга олдсонгүй")
-    if order.payment_status == "paid":
-        raise HTTPException(status_code=400, detail="Төлсөн захиалгыг цуцлах боломжгүй")
-    if order.status not in ("pending", "confirmed"):
-        raise HTTPException(status_code=400, detail="Энэ төлөвт цуцлах боломжгүй")
-    _apply_order_status(session, order, "cancelled", "buyer_cancelled")
-    session.commit()
-    return _order_payload(session, order)
-
-
 @app.get("/api/seller/orders")
 def api_seller_orders(request: Request, session: Session = Depends(get_session)):
     user = require_user(request, session)
@@ -4344,12 +4130,10 @@ def _mark_payment_group_paid(
 @app.get("/api/qpay/status")
 def api_qpay_status():
     live = qpay_client.qpay_configured()
-    mock = qpay_client.is_mock_mode()
     return {
         "configured": live,
-        "mock": mock,
-        "show_mock_ui": mock and ENVIRONMENT != "production",
-        "ready": live or mock,
+        "mock": qpay_client.is_mock_mode(),
+        "ready": live or qpay_client.is_mock_mode(),
         "mode": "live" if live else "mock",
         "has_credentials": bool(
             qpay_client.QPAY_USERNAME
@@ -4463,8 +4247,6 @@ async def api_qpay_callback(
 @app.post("/api/qpay/mock-pay/{payment_group_id}")
 def api_qpay_mock_pay(payment_group_id: str, session: Session = Depends(get_session)):
     """Dev-only: simulate successful QPay payment + eBarimt."""
-    if ENVIRONMENT == "production":
-        raise HTTPException(status_code=403, detail="Production дээр mock төлбөр хориотой")
     orders = session.exec(
         select(Order).where(Order.payment_group_id == payment_group_id)
     ).all()
@@ -4762,17 +4544,6 @@ def api_admin_stats(request: Request, session: Session = Depends(get_session)):
     shipments = session.exec(select(DeliveryShipment)).all()
     revenue_paid = sum(o.total for o in orders if o.payment_status == "paid")
     qpay_live = qpay_client.qpay_configured()
-    moderation_pending = sum(1 for p in products if p.publish_status == "pending_review")
-    stores_unverified = sum(
-        1 for s in stores if not _store_verification_flags(s)["store_verified"]
-    )
-    stores_ready = sum(
-        1
-        for s in stores
-        if s.is_active
-        and not s.is_approved
-        and _store_verification_flags(s)["store_verified"]
-    )
     return {
         "users": len(users),
         "buyers": sum(1 for u in users if u.role == "buyer"),
@@ -4780,12 +4551,8 @@ def api_admin_stats(request: Request, session: Session = Depends(get_session)):
         "stores": len(stores),
         "stores_pending": sum(1 for s in stores if not s.is_approved),
         "stores_active": sum(1 for s in stores if s.is_approved and s.is_active),
-        "stores_unverified": stores_unverified,
-        "stores_ready_for_approval": stores_ready,
-        "moderation_pending": moderation_pending,
         "products": len(products),
         "products_active": sum(1 for p in products if p.is_active),
-        "products_published": sum(1 for p in products if p.publish_status == "published"),
         "orders": len(orders),
         "orders_pending": sum(1 for o in orders if o.status == "pending"),
         "revenue_paid": revenue_paid,
@@ -4797,7 +4564,6 @@ def api_admin_stats(request: Request, session: Session = Depends(get_session)):
             "configured": qpay_live,
             "ebarimt_enabled": qpay_client.EBARIMT_ENABLED,
         },
-        "admin_configured": bool(ADMIN_PHONE and ADMIN_PASSWORD),
     }
 
 
@@ -4806,22 +4572,12 @@ def api_admin_stores(request: Request, session: Session = Depends(get_session)):
     require_admin(request, session)
     stores = session.exec(select(Store).order_by(Store.id.desc())).all()
     owners = {u.id: u for u in session.exec(select(User)).all()}
-    all_products = session.exec(select(Product)).all()
-    by_store: Dict[int, List[Product]] = {}
-    for p in all_products:
-        by_store.setdefault(p.store_id, []).append(p)
     data = []
     for s in stores:
         row = s.model_dump() if hasattr(s, "model_dump") else s.dict()
         owner = owners.get(s.owner_id)
         row["owner_name"] = owner.name if owner else None
         row["owner_phone"] = owner.phone if owner else None
-        flags = _store_verification_flags(s)
-        row.update(flags)
-        prods = by_store.get(s.id, [])
-        row["products_published"] = sum(1 for p in prods if p.publish_status == "published")
-        row["products_pending"] = sum(1 for p in prods if p.publish_status == "pending_review")
-        row["products_total"] = len(prods)
         data.append(row)
     return {"data": data}
 
@@ -5071,7 +4827,7 @@ async def api_admin_create_product(
         tread_percent=tread_percent,
         bolt_pattern=(bolt_pattern or "").strip() or None,
         wheel_type=(wheel_type or "").strip() or None,
-        car_make=_normalize_car_make_field(car_make),
+        car_make=(car_make or "").strip() or None,
         listing_kind=kind,
         publish_status="published" if do_publish else "draft",
         published_at=now if do_publish else None,

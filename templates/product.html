@@ -9,7 +9,7 @@
     {% include "partials/head_meta.html" with context %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/static/style.css?v=ux4">
+    <link rel="stylesheet" href="/static/style.css?v=ux3">
 </head>
 <body class="zamch-shell site-bg">
 {% include "partials/nav.html" %}
@@ -24,7 +24,7 @@
 
 {% include "partials/footer.html" %}
 
-<script src="/static/shop.js?v=ux4"></script>
+<script src="/static/shop.js?v=ux3"></script>
 <script>
 const productId = {{ product_id }};
 
@@ -45,13 +45,13 @@ async function loadProduct() {
     const res = await fetch('/api/products/' + productId);
     const box = document.getElementById('detail');
     if (!res.ok) {
-        setPageTitle(['Олдсонгүй']);
+        document.title = 'Олдсонгүй - ЗАМЧ';
         box.innerHTML = '<div class="col-12 empty-state"><h3>Бүтээгдэхүүн олдсонгүй</h3><a href="/" class="btn-zamch btn-zamch-dark mt-3">Буцах</a></div>';
         return;
     }
     const p = await res.json();
     const title = String(p.title || 'Бүтээгдэхүүн').trim();
-    setPageTitle([title]);
+    document.title = title + ' - ЗАМЧ';
     const desc = [p.brand, p.category_name, p.store_name].filter(Boolean).join(' · ') || 'ЗАМЧ бүтээгдэхүүн';
     setMeta('description', desc);
     setMeta('og:title', title + ' - ЗАМЧ', true);

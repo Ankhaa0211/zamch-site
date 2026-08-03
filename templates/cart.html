@@ -7,7 +7,7 @@
     {% include "partials/head_meta.html" with context %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/static/style.css?v=ux4">
+    <link rel="stylesheet" href="/static/style.css?v=ux3">
 </head>
 <body class="zamch-shell site-bg">
 {% include "partials/nav.html" %}
@@ -115,10 +115,9 @@
     </div>
 </div>
 
-<script src="/static/shop.js?v=ux4"></script>
+<script src="/static/shop.js?v=ux3"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-window.SHOW_MOCK_UI = {{ (not is_production)|tojson }};
 let pollTimer = null;
 let activeGroupId = null;
 let qpayModal = null;
@@ -135,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkPendingPay();
     fetch('/api/qpay/status').then(r => r.json()).then(s => {
         const banner = document.getElementById('qpayMockBanner');
-        if (banner && s.show_mock_ui) banner.style.display = '';
+        if (banner && s.mock) banner.style.display = '';
     }).catch(() => {});
 });
 
@@ -211,25 +210,19 @@ async function loadCart() {
     const storeIds = new Set(data.items.map(i => i.store_id).filter(Boolean));
     document.getElementById('multiStoreHint').style.display = storeIds.size > 1 ? '' : 'none';
 
-    box.innerHTML = data.items.map(item => {
-      const stock = Math.max(1, Number(item.stock || 1));
-      const qty = Math.min(Number(item.quantity || 1), stock);
-      return `
-      <div class="cart-line">
-        <img src="${escapeHtml(safeUrl((item.images||[])[0]))}" width="72" height="72" class="cart-line-img rounded-3 object-fit-cover" alt="">
-        <div class="cart-line-info">
+    box.innerHTML = data.items.map(item => `
+      <div class="d-flex gap-3 align-items-center border-bottom py-3">
+        <img src="${escapeHtml(safeUrl((item.images||[])[0]))}" width="72" height="72" class="rounded-3 object-fit-cover" alt="">
+        <div class="flex-grow-1">
           <div class="fw-bold">${escapeHtml(item.title)}</div>
           <div class="small text-secondary">${escapeHtml(item.store_name)}</div>
-          <div class="cart-line-price">${money(item.price)}</div>
+          <div class="text-warning fw-bold">${money(item.price)}</div>
         </div>
-        <div class="cart-line-actions">
-          <input type="number" class="form-control cart-line-qty" min="1" max="${stock}" value="${qty}"
-            aria-label="Тоо ширхэг"
-            onchange="updateQty(${item.id}, this.value)">
-          <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItem(${item.id})" aria-label="Устгах"><i class="bi bi-trash"></i></button>
-        </div>
-      </div>`;
-    }).join('');
+        <input type="number" class="form-control" style="width:80px" min="1" value="${item.quantity}"
+          onchange="updateQty(${item.id}, this.value)">
+        <button class="btn btn-sm btn-outline-danger" onclick="removeItem(${item.id})"><i class="bi bi-trash"></i></button>
+      </div>
+    `).join('');
     refreshCartBadge();
 }
 
@@ -282,7 +275,7 @@ function showQpay(payment) {
         short.style.display = 'none';
     }
 
-    document.getElementById('qpayMockBtn').style.display = (payment.mock && window.SHOW_MOCK_UI) ? '' : 'none';
+    document.getElementById('qpayMockBtn').style.display = payment.mock ? '' : 'none';
     document.getElementById('qpayStatus').textContent = 'Төлбөр хүлээж байна...';
     document.getElementById('qpayStatus').className = 'text-secondary small mb-2';
     qpayModal.show();
