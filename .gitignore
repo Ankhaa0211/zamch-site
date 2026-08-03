@@ -8,7 +8,9 @@ __pycache__/
 .cursor/
 *.db
 database.db
-data/
+# Keep fitment catalog in git/deploy; ignore other local data dumps
+data/*
+!data/car_catalog.json
 photos/*
 !photos/.gitkeep
 *.log

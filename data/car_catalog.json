@@ -1,0 +1,1968 @@
+{
+  "Toyota": {
+    "Prius": {
+      "aliases": [
+        "Prius",
+        "Приус",
+        "Prius 20",
+        "Prius 30",
+        "Prius 50"
+      ],
+      "sizes": [
+        {
+          "width": 195,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x100"
+        },
+        {
+          "width": 205,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "5x100"
+        }
+      ],
+      "bolt_patterns": [
+        "5x100"
+      ]
+    },
+    "Camry": {
+      "aliases": [
+        "Camry",
+        "Камри"
+      ],
+      "sizes": [
+        {
+          "width": 215,
+          "ratio": 55,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Corolla": {
+      "aliases": [
+        "Corolla",
+        "Королла"
+      ],
+      "sizes": [
+        {
+          "width": 195,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x100"
+        },
+        {
+          "width": 205,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "5x100"
+        }
+      ],
+      "bolt_patterns": [
+        "5x100",
+        "5x114.3"
+      ]
+    },
+    "Land Cruiser 200": {
+      "aliases": [
+        "Land 200",
+        "LC200",
+        "Land Cruiser 200",
+        "Ланд 200"
+      ],
+      "sizes": [
+        {
+          "width": 285,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "5x150"
+        },
+        {
+          "width": 275,
+          "ratio": 65,
+          "diameter": 18,
+          "bolt_pattern": "5x150"
+        },
+        {
+          "width": 265,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "5x150"
+        }
+      ],
+      "bolt_patterns": [
+        "5x150"
+      ]
+    },
+    "Land Cruiser 100": {
+      "aliases": [
+        "Land 100",
+        "LC100",
+        "Land Cruiser 100",
+        "Ланд 100"
+      ],
+      "sizes": [
+        {
+          "width": 275,
+          "ratio": 70,
+          "diameter": 16,
+          "bolt_pattern": "5x150"
+        },
+        {
+          "width": 275,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "5x150"
+        }
+      ],
+      "bolt_patterns": [
+        "5x150"
+      ]
+    },
+    "Land Cruiser 300": {
+      "aliases": [
+        "Land 300",
+        "LC300",
+        "Land Cruiser 300",
+        "Ланд 300"
+      ],
+      "sizes": [
+        {
+          "width": 265,
+          "ratio": 55,
+          "diameter": 20,
+          "bolt_pattern": "5x150"
+        },
+        {
+          "width": 265,
+          "ratio": 65,
+          "diameter": 18,
+          "bolt_pattern": "5x150"
+        }
+      ],
+      "bolt_patterns": [
+        "5x150",
+        "6x139.7"
+      ]
+    },
+    "Land Cruiser Prado": {
+      "aliases": [
+        "Prado",
+        "Прадо",
+        "Land Cruiser Prado"
+      ],
+      "sizes": [
+        {
+          "width": 265,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "6x139.7"
+        },
+        {
+          "width": 265,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "6x139.7"
+        }
+      ],
+      "bolt_patterns": [
+        "6x139.7"
+      ]
+    },
+    "Land Cruiser 70": {
+      "aliases": [
+        "Land 70",
+        "LC70",
+        "Land Cruiser 70",
+        "Ланд 70"
+      ],
+      "sizes": [
+        {
+          "width": 265,
+          "ratio": 70,
+          "diameter": 16,
+          "bolt_pattern": "5x150"
+        },
+        {
+          "width": 285,
+          "ratio": 75,
+          "diameter": 16,
+          "bolt_pattern": "5x150"
+        }
+      ],
+      "bolt_patterns": [
+        "5x150",
+        "6x139.7"
+      ]
+    },
+    "RAV4": {
+      "aliases": [
+        "RAV4",
+        "Rav4",
+        "Рав4"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Hilux": {
+      "aliases": [
+        "Hilux",
+        "Хайлакс"
+      ],
+      "sizes": [
+        {
+          "width": 265,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "6x139.7"
+        },
+        {
+          "width": 265,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "6x139.7"
+        }
+      ],
+      "bolt_patterns": [
+        "6x139.7"
+      ]
+    },
+    "Highlander": {
+      "aliases": [
+        "Highlander",
+        "Хайландер"
+      ],
+      "sizes": [
+        {
+          "width": 235,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 65,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Alphard": {
+      "aliases": [
+        "Alphard",
+        "Альфард"
+      ],
+      "sizes": [
+        {
+          "width": 235,
+          "ratio": 50,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 225,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Harrier": {
+      "aliases": [
+        "Harrier",
+        "Харриер"
+      ],
+      "sizes": [
+        {
+          "width": 235,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 225,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Vitz": {
+      "aliases": [
+        "Vitz",
+        "Yaris",
+        "Витц",
+        "Ярис"
+      ],
+      "sizes": [
+        {
+          "width": 175,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x100"
+        },
+        {
+          "width": 185,
+          "ratio": 55,
+          "diameter": 15,
+          "bolt_pattern": "5x100"
+        }
+      ],
+      "bolt_patterns": [
+        "5x100"
+      ]
+    },
+    "Aqua": {
+      "aliases": [
+        "Aqua",
+        "Аква"
+      ],
+      "sizes": [
+        {
+          "width": 175,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x100"
+        },
+        {
+          "width": 185,
+          "ratio": 60,
+          "diameter": 15,
+          "bolt_pattern": "5x100"
+        }
+      ],
+      "bolt_patterns": [
+        "5x100"
+      ]
+    },
+    "Wish": {
+      "aliases": [
+        "Wish",
+        "Виш"
+      ],
+      "sizes": [
+        {
+          "width": 195,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x100"
+        },
+        {
+          "width": 205,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "5x100"
+        }
+      ],
+      "bolt_patterns": [
+        "5x100"
+      ]
+    },
+    "Noah": {
+      "aliases": [
+        "Noah",
+        "Ноах",
+        "Ноа"
+      ],
+      "sizes": [
+        {
+          "width": 195,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 205,
+          "ratio": 60,
+          "diameter": 16,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Voxy": {
+      "aliases": [
+        "Voxy",
+        "Вокси"
+      ],
+      "sizes": [
+        {
+          "width": 205,
+          "ratio": 60,
+          "diameter": 16,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 215,
+          "ratio": 55,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Premio": {
+      "aliases": [
+        "Premio",
+        "Премио"
+      ],
+      "sizes": [
+        {
+          "width": 195,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x100"
+        },
+        {
+          "width": 205,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "5x100"
+        }
+      ],
+      "bolt_patterns": [
+        "5x100"
+      ]
+    },
+    "Allion": {
+      "aliases": [
+        "Allion",
+        "Аллион"
+      ],
+      "sizes": [
+        {
+          "width": 195,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x100"
+        },
+        {
+          "width": 205,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "5x100"
+        }
+      ],
+      "bolt_patterns": [
+        "5x100"
+      ]
+    },
+    "Mark X": {
+      "aliases": [
+        "Mark X",
+        "MarkX",
+        "Марк Х"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Surf": {
+      "aliases": [
+        "Surf",
+        "Hilux Surf",
+        "4Runner",
+        "Сурф"
+      ],
+      "sizes": [
+        {
+          "width": 265,
+          "ratio": 70,
+          "diameter": 16,
+          "bolt_pattern": "6x139.7"
+        },
+        {
+          "width": 265,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "6x139.7"
+        }
+      ],
+      "bolt_patterns": [
+        "6x139.7"
+      ]
+    }
+  },
+  "Lexus": {
+    "RX": {
+      "aliases": [
+        "RX",
+        "Lexus RX",
+        "RX350",
+        "RX450"
+      ],
+      "sizes": [
+        {
+          "width": 235,
+          "ratio": 65,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 55,
+          "diameter": 19,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "LX": {
+      "aliases": [
+        "LX",
+        "Lexus LX",
+        "LX570",
+        "LX600"
+      ],
+      "sizes": [
+        {
+          "width": 285,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "5x150"
+        },
+        {
+          "width": 275,
+          "ratio": 50,
+          "diameter": 21,
+          "bolt_pattern": "5x150"
+        }
+      ],
+      "bolt_patterns": [
+        "5x150"
+      ]
+    },
+    "GX": {
+      "aliases": [
+        "GX",
+        "Lexus GX",
+        "GX460",
+        "GX550"
+      ],
+      "sizes": [
+        {
+          "width": 265,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "6x139.7"
+        },
+        {
+          "width": 265,
+          "ratio": 55,
+          "diameter": 19,
+          "bolt_pattern": "6x139.7"
+        }
+      ],
+      "bolt_patterns": [
+        "6x139.7"
+      ]
+    },
+    "ES": {
+      "aliases": [
+        "ES",
+        "Lexus ES",
+        "ES350"
+      ],
+      "sizes": [
+        {
+          "width": 215,
+          "ratio": 55,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "NX": {
+      "aliases": [
+        "NX",
+        "Lexus NX",
+        "NX200",
+        "NX300"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    }
+  },
+  "Honda": {
+    "CR-V": {
+      "aliases": [
+        "CR-V",
+        "CRV",
+        "Си ар ви"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Accord": {
+      "aliases": [
+        "Accord",
+        "Аккорд"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 50,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Fit": {
+      "aliases": [
+        "Fit",
+        "Jazz",
+        "Фит"
+      ],
+      "sizes": [
+        {
+          "width": 175,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 185,
+          "ratio": 55,
+          "diameter": 15,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3",
+        "4x100"
+      ]
+    },
+    "Stepwgn": {
+      "aliases": [
+        "Stepwgn",
+        "Stepwagon",
+        "Степвагон"
+      ],
+      "sizes": [
+        {
+          "width": 205,
+          "ratio": 60,
+          "diameter": 16,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 215,
+          "ratio": 55,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Odyssey": {
+      "aliases": [
+        "Odyssey",
+        "Одиссей"
+      ],
+      "sizes": [
+        {
+          "width": 215,
+          "ratio": 55,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 225,
+          "ratio": 55,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    }
+  },
+  "Nissan": {
+    "X-Trail": {
+      "aliases": [
+        "X-Trail",
+        "XTrail",
+        "Икс трейл"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Patrol": {
+      "aliases": [
+        "Patrol",
+        "Патрол",
+        "Y61",
+        "Y62"
+      ],
+      "sizes": [
+        {
+          "width": 265,
+          "ratio": 70,
+          "diameter": 18,
+          "bolt_pattern": "6x139.7"
+        },
+        {
+          "width": 275,
+          "ratio": 60,
+          "diameter": 20,
+          "bolt_pattern": "6x139.7"
+        }
+      ],
+      "bolt_patterns": [
+        "6x139.7"
+      ]
+    },
+    "Serena": {
+      "aliases": [
+        "Serena",
+        "Серена"
+      ],
+      "sizes": [
+        {
+          "width": 195,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 205,
+          "ratio": 60,
+          "diameter": 16,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Note": {
+      "aliases": [
+        "Note",
+        "Ноут"
+      ],
+      "sizes": [
+        {
+          "width": 185,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "4x100"
+        },
+        {
+          "width": 185,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "4x100"
+        }
+      ],
+      "bolt_patterns": [
+        "4x100"
+      ]
+    },
+    "Skyline": {
+      "aliases": [
+        "Skyline",
+        "Скайлайн"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 245,
+          "ratio": 40,
+          "diameter": 19,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Tiida": {
+      "aliases": [
+        "Tiida",
+        "Тиида"
+      ],
+      "sizes": [
+        {
+          "width": 185,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "4x100"
+        },
+        {
+          "width": 195,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "4x100"
+        }
+      ],
+      "bolt_patterns": [
+        "4x100"
+      ]
+    }
+  },
+  "Hyundai": {
+    "Tucson": {
+      "aliases": [
+        "Tucson",
+        "Туссон"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 60,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Santa Fe": {
+      "aliases": [
+        "Santa Fe",
+        "Сантафе"
+      ],
+      "sizes": [
+        {
+          "width": 235,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 255,
+          "ratio": 45,
+          "diameter": 20,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Sonata": {
+      "aliases": [
+        "Sonata",
+        "Соната"
+      ],
+      "sizes": [
+        {
+          "width": 215,
+          "ratio": 55,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 225,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Elantra": {
+      "aliases": [
+        "Elantra",
+        "Элантра"
+      ],
+      "sizes": [
+        {
+          "width": 195,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 205,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Creta": {
+      "aliases": [
+        "Creta",
+        "Крета",
+        "ix25"
+      ],
+      "sizes": [
+        {
+          "width": 205,
+          "ratio": 65,
+          "diameter": 16,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 215,
+          "ratio": 60,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    }
+  },
+  "Kia": {
+    "Sportage": {
+      "aliases": [
+        "Sportage",
+        "Спортаж"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 60,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Sorento": {
+      "aliases": [
+        "Sorento",
+        "Соренто"
+      ],
+      "sizes": [
+        {
+          "width": 235,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 55,
+          "diameter": 19,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Optima": {
+      "aliases": [
+        "Optima",
+        "K5",
+        "Оптима"
+      ],
+      "sizes": [
+        {
+          "width": 215,
+          "ratio": 55,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 225,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Rio": {
+      "aliases": [
+        "Rio",
+        "Рио"
+      ],
+      "sizes": [
+        {
+          "width": 185,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "4x100"
+        },
+        {
+          "width": 195,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "4x100"
+        }
+      ],
+      "bolt_patterns": [
+        "4x100",
+        "5x114.3"
+      ]
+    }
+  },
+  "Subaru": {
+    "Forester": {
+      "aliases": [
+        "Forester",
+        "Форестер"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 60,
+          "diameter": 17,
+          "bolt_pattern": "5x100"
+        },
+        {
+          "width": 225,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x100"
+        }
+      ],
+      "bolt_patterns": [
+        "5x100"
+      ]
+    },
+    "Outback": {
+      "aliases": [
+        "Outback",
+        "Аутбэк",
+        "Аутбек"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "5x100"
+        },
+        {
+          "width": 225,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x100"
+        }
+      ],
+      "bolt_patterns": [
+        "5x100"
+      ]
+    },
+    "XV": {
+      "aliases": [
+        "XV",
+        "Crosstrek",
+        "Субару XV"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x100"
+        },
+        {
+          "width": 225,
+          "ratio": 60,
+          "diameter": 17,
+          "bolt_pattern": "5x100"
+        }
+      ],
+      "bolt_patterns": [
+        "5x100"
+      ]
+    },
+    "Legacy": {
+      "aliases": [
+        "Legacy",
+        "Легаси"
+      ],
+      "sizes": [
+        {
+          "width": 215,
+          "ratio": 50,
+          "diameter": 17,
+          "bolt_pattern": "5x100"
+        },
+        {
+          "width": 225,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x100"
+        }
+      ],
+      "bolt_patterns": [
+        "5x100"
+      ]
+    }
+  },
+  "Mitsubishi": {
+    "Pajero": {
+      "aliases": [
+        "Pajero",
+        "Пажеро",
+        "Паджеро"
+      ],
+      "sizes": [
+        {
+          "width": 265,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "6x139.7"
+        },
+        {
+          "width": 265,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "6x139.7"
+        }
+      ],
+      "bolt_patterns": [
+        "6x139.7"
+      ]
+    },
+    "Outlander": {
+      "aliases": [
+        "Outlander",
+        "Аутлендер"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 215,
+          "ratio": 70,
+          "diameter": 16,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Delica": {
+      "aliases": [
+        "Delica",
+        "Делика"
+      ],
+      "sizes": [
+        {
+          "width": 215,
+          "ratio": 70,
+          "diameter": 16,
+          "bolt_pattern": "6x139.7"
+        },
+        {
+          "width": 225,
+          "ratio": 70,
+          "diameter": 16,
+          "bolt_pattern": "6x139.7"
+        }
+      ],
+      "bolt_patterns": [
+        "6x139.7"
+      ]
+    }
+  },
+  "Ford": {
+    "Ranger": {
+      "aliases": [
+        "Ranger",
+        "Рэйнджер"
+      ],
+      "sizes": [
+        {
+          "width": 255,
+          "ratio": 70,
+          "diameter": 16,
+          "bolt_pattern": "6x139.7"
+        },
+        {
+          "width": 265,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "6x139.7"
+        }
+      ],
+      "bolt_patterns": [
+        "6x139.7"
+      ]
+    },
+    "Explorer": {
+      "aliases": [
+        "Explorer",
+        "Эксплорер"
+      ],
+      "sizes": [
+        {
+          "width": 245,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 255,
+          "ratio": 50,
+          "diameter": 20,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    }
+  },
+  "Mazda": {
+    "CX-5": {
+      "aliases": [
+        "CX-5",
+        "CX5",
+        "Си экс 5"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 225,
+          "ratio": 55,
+          "diameter": 19,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "CX-9": {
+      "aliases": [
+        "CX-9",
+        "CX9"
+      ],
+      "sizes": [
+        {
+          "width": 255,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 255,
+          "ratio": 50,
+          "diameter": 20,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Axela": {
+      "aliases": [
+        "Axela",
+        "Mazda3",
+        "Аксела"
+      ],
+      "sizes": [
+        {
+          "width": 205,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 215,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Demio": {
+      "aliases": [
+        "Demio",
+        "Mazda2",
+        "Демио"
+      ],
+      "sizes": [
+        {
+          "width": 175,
+          "ratio": 65,
+          "diameter": 14,
+          "bolt_pattern": "4x100"
+        },
+        {
+          "width": 185,
+          "ratio": 55,
+          "diameter": 15,
+          "bolt_pattern": "4x100"
+        }
+      ],
+      "bolt_patterns": [
+        "4x100"
+      ]
+    }
+  },
+  "Suzuki": {
+    "Escudo": {
+      "aliases": [
+        "Escudo",
+        "Vitara",
+        "Эскудо",
+        "Витара"
+      ],
+      "sizes": [
+        {
+          "width": 215,
+          "ratio": 70,
+          "diameter": 16,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 225,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Jimny": {
+      "aliases": [
+        "Jimny",
+        "Джимни"
+      ],
+      "sizes": [
+        {
+          "width": 175,
+          "ratio": 80,
+          "diameter": 16,
+          "bolt_pattern": "5x139.7"
+        },
+        {
+          "width": 195,
+          "ratio": 80,
+          "diameter": 15,
+          "bolt_pattern": "5x139.7"
+        }
+      ],
+      "bolt_patterns": [
+        "5x139.7"
+      ]
+    },
+    "Swift": {
+      "aliases": [
+        "Swift",
+        "Свифт"
+      ],
+      "sizes": [
+        {
+          "width": 175,
+          "ratio": 65,
+          "diameter": 15,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 185,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3",
+        "4x100"
+      ]
+    }
+  },
+  "BMW": {
+    "X5": {
+      "aliases": [
+        "X5",
+        "БМВ X5"
+      ],
+      "sizes": [
+        {
+          "width": 255,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x120"
+        },
+        {
+          "width": 275,
+          "ratio": 40,
+          "diameter": 20,
+          "bolt_pattern": "5x120"
+        }
+      ],
+      "bolt_patterns": [
+        "5x120"
+      ]
+    },
+    "X3": {
+      "aliases": [
+        "X3",
+        "БМВ X3"
+      ],
+      "sizes": [
+        {
+          "width": 245,
+          "ratio": 50,
+          "diameter": 18,
+          "bolt_pattern": "5x120"
+        },
+        {
+          "width": 245,
+          "ratio": 45,
+          "diameter": 19,
+          "bolt_pattern": "5x120"
+        }
+      ],
+      "bolt_patterns": [
+        "5x120"
+      ]
+    },
+    "5 Series": {
+      "aliases": [
+        "5 Series",
+        "BMW 5",
+        "525",
+        "530",
+        "БМВ 5"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 55,
+          "diameter": 17,
+          "bolt_pattern": "5x120"
+        },
+        {
+          "width": 245,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x120"
+        }
+      ],
+      "bolt_patterns": [
+        "5x120"
+      ]
+    }
+  },
+  "Mercedes-Benz": {
+    "G-Class": {
+      "aliases": [
+        "G-Class",
+        "Gelandewagen",
+        "G63",
+        "G500",
+        "Гелик"
+      ],
+      "sizes": [
+        {
+          "width": 275,
+          "ratio": 55,
+          "diameter": 19,
+          "bolt_pattern": "5x130"
+        },
+        {
+          "width": 275,
+          "ratio": 50,
+          "diameter": 20,
+          "bolt_pattern": "5x130"
+        }
+      ],
+      "bolt_patterns": [
+        "5x130"
+      ]
+    },
+    "GLS": {
+      "aliases": [
+        "GLS",
+        "GL",
+        "Мерседес GLS"
+      ],
+      "sizes": [
+        {
+          "width": 275,
+          "ratio": 50,
+          "diameter": 20,
+          "bolt_pattern": "5x112"
+        },
+        {
+          "width": 265,
+          "ratio": 45,
+          "diameter": 21,
+          "bolt_pattern": "5x112"
+        }
+      ],
+      "bolt_patterns": [
+        "5x112"
+      ]
+    },
+    "E-Class": {
+      "aliases": [
+        "E-Class",
+        "E200",
+        "E300",
+        "Е класс"
+      ],
+      "sizes": [
+        {
+          "width": 225,
+          "ratio": 55,
+          "diameter": 17,
+          "bolt_pattern": "5x112"
+        },
+        {
+          "width": 245,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x112"
+        }
+      ],
+      "bolt_patterns": [
+        "5x112"
+      ]
+    }
+  },
+  "Volkswagen": {
+    "Tiguan": {
+      "aliases": [
+        "Tiguan",
+        "Тигуан"
+      ],
+      "sizes": [
+        {
+          "width": 215,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "5x112"
+        },
+        {
+          "width": 235,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x112"
+        }
+      ],
+      "bolt_patterns": [
+        "5x112"
+      ]
+    },
+    "Touareg": {
+      "aliases": [
+        "Touareg",
+        "Туарег"
+      ],
+      "sizes": [
+        {
+          "width": 255,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x130"
+        },
+        {
+          "width": 275,
+          "ratio": 45,
+          "diameter": 20,
+          "bolt_pattern": "5x130"
+        }
+      ],
+      "bolt_patterns": [
+        "5x130"
+      ]
+    },
+    "Passat": {
+      "aliases": [
+        "Passat",
+        "Пассат"
+      ],
+      "sizes": [
+        {
+          "width": 215,
+          "ratio": 55,
+          "diameter": 16,
+          "bolt_pattern": "5x112"
+        },
+        {
+          "width": 235,
+          "ratio": 45,
+          "diameter": 18,
+          "bolt_pattern": "5x112"
+        }
+      ],
+      "bolt_patterns": [
+        "5x112"
+      ]
+    }
+  },
+  "Land Rover": {
+    "Range Rover": {
+      "aliases": [
+        "Range Rover",
+        "Рэйндж Ровер"
+      ],
+      "sizes": [
+        {
+          "width": 255,
+          "ratio": 55,
+          "diameter": 19,
+          "bolt_pattern": "5x120"
+        },
+        {
+          "width": 275,
+          "ratio": 45,
+          "diameter": 21,
+          "bolt_pattern": "5x120"
+        }
+      ],
+      "bolt_patterns": [
+        "5x120"
+      ]
+    },
+    "Discovery": {
+      "aliases": [
+        "Discovery",
+        "Дисковери"
+      ],
+      "sizes": [
+        {
+          "width": 255,
+          "ratio": 55,
+          "diameter": 19,
+          "bolt_pattern": "5x120"
+        },
+        {
+          "width": 275,
+          "ratio": 45,
+          "diameter": 20,
+          "bolt_pattern": "5x120"
+        }
+      ],
+      "bolt_patterns": [
+        "5x120"
+      ]
+    },
+    "Defender": {
+      "aliases": [
+        "Defender",
+        "Дефендер"
+      ],
+      "sizes": [
+        {
+          "width": 255,
+          "ratio": 70,
+          "diameter": 18,
+          "bolt_pattern": "5x120"
+        },
+        {
+          "width": 275,
+          "ratio": 55,
+          "diameter": 20,
+          "bolt_pattern": "5x120"
+        }
+      ],
+      "bolt_patterns": [
+        "5x120"
+      ]
+    }
+  },
+  "Jeep": {
+    "Grand Cherokee": {
+      "aliases": [
+        "Grand Cherokee",
+        "Гранд Чероки"
+      ],
+      "sizes": [
+        {
+          "width": 265,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "5x127"
+        },
+        {
+          "width": 265,
+          "ratio": 50,
+          "diameter": 20,
+          "bolt_pattern": "5x127"
+        }
+      ],
+      "bolt_patterns": [
+        "5x127"
+      ]
+    },
+    "Wrangler": {
+      "aliases": [
+        "Wrangler",
+        "Рэнглер"
+      ],
+      "sizes": [
+        {
+          "width": 245,
+          "ratio": 75,
+          "diameter": 17,
+          "bolt_pattern": "5x127"
+        },
+        {
+          "width": 285,
+          "ratio": 70,
+          "diameter": 17,
+          "bolt_pattern": "5x127"
+        }
+      ],
+      "bolt_patterns": [
+        "5x127"
+      ]
+    }
+  },
+  "Isuzu": {
+    "D-Max": {
+      "aliases": [
+        "D-Max",
+        "DMax",
+        "Димакс"
+      ],
+      "sizes": [
+        {
+          "width": 255,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "6x139.7"
+        },
+        {
+          "width": 265,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "6x139.7"
+        }
+      ],
+      "bolt_patterns": [
+        "6x139.7"
+      ]
+    },
+    "MUX": {
+      "aliases": [
+        "MUX",
+        "mu-X",
+        "Му икс"
+      ],
+      "sizes": [
+        {
+          "width": 255,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "6x139.7"
+        },
+        {
+          "width": 265,
+          "ratio": 60,
+          "diameter": 18,
+          "bolt_pattern": "6x139.7"
+        }
+      ],
+      "bolt_patterns": [
+        "6x139.7"
+      ]
+    }
+  },
+  "Chevrolet": {
+    "Captiva": {
+      "aliases": [
+        "Captiva",
+        "Каптива"
+      ],
+      "sizes": [
+        {
+          "width": 235,
+          "ratio": 55,
+          "diameter": 18,
+          "bolt_pattern": "5x114.3"
+        },
+        {
+          "width": 235,
+          "ratio": 65,
+          "diameter": 17,
+          "bolt_pattern": "5x114.3"
+        }
+      ],
+      "bolt_patterns": [
+        "5x114.3"
+      ]
+    },
+    "Traverse": {
+      "aliases": [
+        "Traverse",
+        "Траверс"
+      ],
+      "sizes": [
+        {
+          "width": 255,
+          "ratio": 65,
+          "diameter": 18,
+          "bolt_pattern": "6x132"
+        },
+        {
+          "width": 255,
+          "ratio": 55,
+          "diameter": 20,
+          "bolt_pattern": "6x132"
+        }
+      ],
+      "bolt_patterns": [
+        "6x132"
+      ]
+    }
+  }
+}

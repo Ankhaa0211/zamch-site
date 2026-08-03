@@ -6,7 +6,8 @@ __pycache__
 *.db
 .env
 .DS_Store
-data/
+data/*
+!data/car_catalog.json
 photos/*
 !photos/.gitkeep
 tests/
