@@ -525,6 +525,26 @@ def bootstrap_admin():
         session.commit()
 
 
+def maybe_seed_demo_marketplace() -> None:
+    """If DB has no stores, seed demo catalog so public web is not empty.
+
+    Opt out: SEED_DEMO_ON_BOOT=0
+    """
+    flag = (os.getenv("SEED_DEMO_ON_BOOT") or "1").strip().lower()
+    if flag in ("0", "false", "no", "off"):
+        return
+    with Session(engine) as session:
+        if session.exec(select(Store.id).limit(1)).first() is not None:
+            return
+    try:
+        from seed_demo import seed
+
+        print("Marketplace empty — seeding demo store/products")
+        seed()
+    except Exception as exc:
+        print(f"WARNING: demo seed failed: {exc}")
+
+
 def get_session():
     with Session(engine) as session:
         yield session
@@ -544,6 +564,7 @@ async def lifespan(app: FastAPI):
     seed_categories()
     normalize_obud_spelling()
     bootstrap_admin()
+    maybe_seed_demo_marketplace()
     expiry_task = asyncio.create_task(_reservation_expiry_loop())
     try:
         yield
