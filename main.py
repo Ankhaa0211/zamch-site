@@ -2729,6 +2729,220 @@ def api_mobile_stock_movements(
     }
 
 
+def _default_warehouse_for_store(session: Session, store_id: int) -> Optional[Warehouse]:
+    return session.exec(
+        select(Warehouse).where(
+            Warehouse.store_id == store_id,
+            Warehouse.is_default == True,
+            Warehouse.is_active == True,
+        )
+    ).first() or session.exec(
+        select(Warehouse).where(Warehouse.store_id == store_id, Warehouse.is_active == True)
+    ).first()
+
+
+def _walk_in_sale_payload(
+    session: Session, movement: StockMovement, product: Optional[Product] = None
+) -> Dict[str, Any]:
+    product = product or session.get(Product, movement.product_id)
+    return {
+        "id": movement.id,
+        "product_id": movement.product_id,
+        "product_title": product.title if product else "",
+        "quantity": abs(int(movement.quantity_delta or 0)),
+        "note": movement.reason,
+        "created_at": movement.created_at,
+        "voided": False,
+    }
+
+
+@app.get("/api/mobile/sales")
+def api_mobile_sales(
+    day: Optional[str] = Query(None),
+    authorization: Optional[str] = Header(None),
+    session: Session = Depends(get_session),
+):
+    """Лангууны өдөр тутмын борлуулалт (веб захиалгаас тусдаа)."""
+    _, store = require_mobile_seller(authorization, session)
+    day_key = (day or datetime.now().strftime("%Y-%m-%d")).strip()
+    rows = session.exec(
+        select(StockMovement)
+        .where(
+            StockMovement.store_id == store.id,
+            StockMovement.movement_type == "walk_in",
+            StockMovement.quantity_delta < 0,
+        )
+        .order_by(StockMovement.id.desc())
+        .limit(300)
+    ).all()
+    voided_refs = {
+        int(m.reference_id)
+        for m in session.exec(
+            select(StockMovement).where(
+                StockMovement.store_id == store.id,
+                StockMovement.movement_type == "walk_in_void",
+                StockMovement.reference_type == "walk_in",
+            )
+        ).all()
+        if m.reference_id is not None
+    }
+    products = {
+        p.id: p
+        for p in session.exec(select(Product).where(Product.store_id == store.id)).all()
+    }
+    data = []
+    for row in rows:
+        if not (row.created_at or "").startswith(day_key):
+            continue
+        item = _walk_in_sale_payload(session, row, products.get(row.product_id))
+        item["voided"] = row.id in voided_refs
+        data.append(item)
+    return {"day": day_key, "data": data}
+
+
+@app.post("/api/mobile/sales")
+def api_mobile_record_sale(
+    product_id: int = Form(...),
+    quantity: int = Form(...),
+    note: Optional[str] = Form(None),
+    authorization: Optional[str] = Header(None),
+    session: Session = Depends(get_session),
+):
+    user, store = require_mobile_seller(authorization, session)
+    if quantity < 1:
+        raise HTTPException(status_code=400, detail="Тоо 1-ээс багагүй байна")
+    product = session.get(Product, product_id)
+    if not product or product.store_id != store.id or not product.is_active:
+        raise HTTPException(status_code=404, detail="Бүтээгдэхүүн олдсонгүй")
+    available = int(product.stock or 0)
+    if available < quantity:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Нөөц хүрэлцэхгүй (үлдэгдэл {available} ш)",
+        )
+
+    warehouse = _default_warehouse_for_store(session, store.id)
+    if not warehouse:
+        warehouse = Warehouse(
+            store_id=store.id,
+            name="Лангуу",
+            address=store.location or "",
+            is_default=True,
+            is_active=True,
+        )
+        session.add(warehouse)
+        session.flush()
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    reason = (note or "").strip() or "Лангууны борлуулалт"
+    balance = session.exec(
+        select(InventoryBalance).where(
+            InventoryBalance.product_id == product.id,
+            InventoryBalance.warehouse_id == warehouse.id,
+        )
+    ).first()
+    if not balance:
+        balance = InventoryBalance(
+            product_id=product.id,
+            warehouse_id=warehouse.id,
+            quantity=available,
+        )
+    else:
+        # Stall app uses product.stock as source of truth.
+        balance.quantity = available
+    balance.quantity = int(balance.quantity or 0) - quantity
+    balance.updated_at = now
+    session.add(balance)
+    primary_movement = StockMovement(
+        store_id=store.id,
+        warehouse_id=warehouse.id,
+        product_id=product.id,
+        movement_type="walk_in",
+        quantity_delta=-quantity,
+        reason=reason,
+        reference_type="walk_in",
+        actor_user_id=user.id,
+    )
+    session.add(primary_movement)
+    session.flush()
+    _sync_product_stock(session, product.id)
+
+    session.commit()
+    session.refresh(product)
+    session.refresh(primary_movement)
+    return {
+        "ok": True,
+        "stock": int(product.stock or 0),
+        "sale": _walk_in_sale_payload(session, primary_movement, product),
+    }
+
+
+@app.post("/api/mobile/sales/{sale_id}/void")
+def api_mobile_void_sale(
+    sale_id: int,
+    authorization: Optional[str] = Header(None),
+    session: Session = Depends(get_session),
+):
+    user, store = require_mobile_seller(authorization, session)
+    movement = session.get(StockMovement, sale_id)
+    if (
+        not movement
+        or movement.store_id != store.id
+        or movement.movement_type != "walk_in"
+        or int(movement.quantity_delta or 0) >= 0
+    ):
+        raise HTTPException(status_code=404, detail="Борлуулалт олдсонгүй")
+    already = session.exec(
+        select(StockMovement).where(
+            StockMovement.store_id == store.id,
+            StockMovement.movement_type == "walk_in_void",
+            StockMovement.reference_type == "walk_in",
+            StockMovement.reference_id == movement.id,
+        )
+    ).first()
+    if already:
+        raise HTTPException(status_code=409, detail="Энэ борлуулалт аль хэдийн цуцлагдсан")
+
+    restore = abs(int(movement.quantity_delta or 0))
+    product = session.get(Product, movement.product_id)
+    if not product or product.store_id != store.id:
+        raise HTTPException(status_code=404, detail="Бүтээгдэхүүн олдсонгүй")
+
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    balance = session.exec(
+        select(InventoryBalance).where(
+            InventoryBalance.product_id == product.id,
+            InventoryBalance.warehouse_id == movement.warehouse_id,
+        )
+    ).first()
+    if not balance:
+        balance = InventoryBalance(
+            product_id=product.id,
+            warehouse_id=movement.warehouse_id,
+            quantity=0,
+        )
+    balance.quantity = int(balance.quantity or 0) + restore
+    balance.updated_at = now
+    session.add(balance)
+    session.add(
+        StockMovement(
+            store_id=store.id,
+            warehouse_id=movement.warehouse_id,
+            product_id=product.id,
+            movement_type="walk_in_void",
+            quantity_delta=restore,
+            reason="Борлуулалт цуцласан",
+            reference_type="walk_in",
+            reference_id=movement.id,
+            actor_user_id=user.id,
+        )
+    )
+    _sync_product_stock(session, product.id)
+    session.commit()
+    session.refresh(product)
+    return {"ok": True, "stock": int(product.stock or 0)}
+
+
 @app.get("/api/mobile/products")
 def api_mobile_products(
     status: Optional[str] = Query(None),
