@@ -1,9 +1,9 @@
 """
 Delivery integration layer (connection prep only — no driver app).
 
-Providers are separate so ЗАМЧ can switch later without rewriting orders:
+Providers are separate so CarHub can switch later without rewriting orders:
   - manual   : дэлгүүр/оператор гараар удирдана (одоогийн default)
-  - own_app  : ирээдүйн ЗАМЧ delivery app (webhook + job payload бэлэн)
+  - own_app  : ирээдүйн CarHub delivery app (webhook + job payload бэлэн)
   - partner  : гадны delivery компани (тусдаа API adapter)
 
 App өөрөө энд байхгүй — зөвхөн marketplace → provider хоорондын гэрээ/холболт.
@@ -91,7 +91,7 @@ class ManualProvider(DeliveryProvider):
 
 
 class OwnAppProvider(DeliveryProvider):
-    """Future ЗАМЧ delivery app — POST job to OWN_APP_WEBHOOK_URL when set."""
+    """Future CarHub delivery app — POST job to OWN_APP_WEBHOOK_URL when set."""
 
     name = "own_app"
 
@@ -181,7 +181,7 @@ def provider_status() -> Dict[str, Any]:
             "own_app": {
                 "ready": bool(OWN_APP_WEBHOOK_URL),
                 "webhook_configured": bool(OWN_APP_WEBHOOK_URL),
-                "description": "ЗАМЧ delivery app (ирээдүй)",
+                "description": "CarHub delivery app (ирээдүй)",
             },
             "partner": {
                 "ready": bool(PARTNER_API_URL),

@@ -1,4 +1,4 @@
-"""QPay V2 + eBarimt 3.0 merchant API client (centralized ЗАМЧ payments)."""
+"""QPay V2 + eBarimt 3.0 merchant API client (CarHub payments)."""
 from __future__ import annotations
 
 import os
@@ -117,7 +117,7 @@ def create_invoice(
             invoice_lines = [
                 {
                     "tax_product_code": EBARIMT_TAX_PRODUCT_CODE or "00000000",
-                    "line_description": description[:100] or "ЗАМЧ захиалга",
+                    "line_description": description[:100] or "CarHub захиалга",
                     "line_quantity": "1",
                     "line_unit_price": str(int(round(amount))),
                     "classification_code": EBARIMT_CLASSIFICATION_CODE or "",

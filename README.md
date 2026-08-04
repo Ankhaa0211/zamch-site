@@ -1,6 +1,6 @@
-# ЗАМЧ Marketplace (site + backend)
+# CarHub Marketplace (site + backend)
 
-Худалдан авагчийн вэб болон seller mobile app-д зориулсан FastAPI backend.
+Худалдан авагчийн вэб болон CarHub Seller mobile app-д зориулсан FastAPI backend.
 
 ## Ажиллуулах
 
@@ -9,6 +9,18 @@ python3 -m pip install -r requirements.txt
 cp .env.example .env
 uvicorn main:app --host 0.0.0.0 --reload
 ```
+
+## Brand (CarHub)
+
+Default нэр/logo кодонд суусан. Override:
+
+```env
+BRAND_NAME=CarHub
+BRAND_TAGLINE=дугуй · обуд
+BRAND_TITLE=CarHub — Дугуй, обуд
+```
+
+Static logo: `static/logo.png`, favicon: `static/favicon.png`
 
 ## Production database
 
@@ -19,12 +31,11 @@ Production жишээ:
 ```env
 ENVIRONMENT=production
 AUTO_CREATE_SCHEMA=0
-DATABASE_URL=postgresql+psycopg://user:password@host:5432/zamch
+DATABASE_URL=postgresql+psycopg://user:password@host:5432/carhub
 SESSION_SECRET=...
-CORS_ORIGINS=https://YOUR-SERVICE.up.railway.app,http://localhost:8081
+CORS_ORIGINS=https://YOUR-SERVICE.onrender.com,http://localhost:8081
+BRAND_NAME=CarHub
 ```
-
-`postgres://` / `postgresql://` (Railway) автоматаар `postgresql+psycopg://` болно.
 
 Migration:
 
@@ -32,50 +43,41 @@ Migration:
 alembic upgrade head
 ```
 
-## Railway дээр public API гаргах
+## Render дээр deploy
 
-1. Repo-г GitHub руу push хийнэ (`zamch-site`).
-2. [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub** → энэ repo.
-3. **Postgres** plugin нэмээд service-тэй холбоно.
-4. Service → **Variables**:
+1. Repo-г GitHub руу push хийнэ.
+2. [render.com](https://render.com) → **New Web Service** → repo сонгоно.
+3. **Environment Variables** (жишээ):
 
 ```env
 ENVIRONMENT=production
 AUTO_CREATE_SCHEMA=0
-SESSION_SECRET=<урт-random>
-DATABASE_URL=${{Postgres.DATABASE_URL}}
-BASE_URL=https://YOUR-SERVICE.up.railway.app
-QPAY_CALLBACK_BASE=https://YOUR-SERVICE.up.railway.app
-CORS_ORIGINS=https://YOUR-SERVICE.up.railway.app,http://localhost:8081
+SESSION_SECRET=<openssl rand -hex 32>
+DATABASE_URL=<postgres-url>
+BASE_URL=https://YOUR-SERVICE.onrender.com
+QPAY_CALLBACK_BASE=https://YOUR-SERVICE.onrender.com
+CORS_ORIGINS=https://YOUR-SERVICE.onrender.com,http://localhost:8081
+BRAND_NAME=CarHub
+BRAND_TAGLINE=дугуй · обуд
+SMS_SENDER=CARHUB
 ```
 
-`BASE_URL`-ийг Public Domain гарсаны дараа яг тэр URL-ээр шинэчилнэ.
-
-5. **Settings → Networking → Public Networking** → Generate domain.
-6. **Volumes** (зөвлөмж): mount path `/app/photos` — барааны зураг restart-д устахгүй.
-7. Deploy дууссаны дараа шалгана:
+4. Deploy дууссаны дараа:
 
 ```sh
-curl -sS https://YOUR-SERVICE.up.railway.app/api/categories
+curl -sS https://YOUR-SERVICE.onrender.com/api/categories
 ```
 
-Амжилттай бол JSON category жагсаалт ирнэ.
+### carhub.mn domain (дараа)
 
-Docker entrypoint (`docker-entrypoint.sh`) автоматаар `alembic upgrade head` хийгээд `uvicorn` асаана (`PORT` Railway өгнө).
+Render → **Custom Domains** → `carhub.mn` нэмээд DNS заавар дагана. Дараа нь `BASE_URL`, `CORS_ORIGINS`, app `EXPO_PUBLIC_API_URL`-ийг `https://carhub.mn` болгоно.
 
 ### Seller app холбох
 
-`zamch-app/eas.json` → `build.preview.env.EXPO_PUBLIC_API_URL` болон `.env`:
+`zamch-app/.env`:
 
 ```env
-EXPO_PUBLIC_API_URL=https://YOUR-SERVICE.up.railway.app
-```
-
-Дараа нь:
-
-```sh
-cd ../zamch-app
-npm run eas:build:apk
+EXPO_PUBLIC_API_URL=https://YOUR-SERVICE.onrender.com
 ```
 
 ## Integration урсгал

@@ -55,6 +55,15 @@ CORS_ORIGINS = [
 ADMIN_PHONE = os.environ.get("ADMIN_PHONE", "").strip()
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "").strip()
 ADMIN_NAME = os.environ.get("ADMIN_NAME", "Админ").strip()
+BRAND_NAME = os.environ.get("BRAND_NAME", "CarHub").strip()
+BRAND_TAGLINE = os.environ.get("BRAND_TAGLINE", "дугуй · обуд").strip()
+BRAND_TITLE = os.environ.get("BRAND_TITLE", f"{BRAND_NAME} — Дугуй, обуд").strip()
+BRAND_DESCRIPTION = os.environ.get(
+    "BRAND_DESCRIPTION",
+    f"{BRAND_NAME} — Монголын дугуй, обуд зах зээл. Хайгаад захиална.",
+).strip()
+BRAND_SELLER_APP = os.environ.get("BRAND_SELLER_APP", f"{BRAND_NAME} Seller").strip()
+BRAND_MARKETPLACE = f"{BRAND_NAME} marketplace"
 
 # --- Models ---
 class User(SQLModel, table=True):
@@ -605,7 +614,7 @@ async def lifespan(app: FastAPI):
             pass
 
 
-app = FastAPI(title="ЗАМЧ Marketplace", lifespan=lifespan)
+app = FastAPI(title=f"{BRAND_NAME} Marketplace", lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 app.add_middleware(
     CORSMiddleware,
@@ -622,6 +631,15 @@ os.makedirs("templates", exist_ok=True)
 app.mount("/photos", StaticFiles(directory="photos"), name="photos")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+templates.env.globals.update(
+    {
+        "brand_name": BRAND_NAME,
+        "brand_tagline": BRAND_TAGLINE,
+        "brand_title": BRAND_TITLE,
+        "brand_description": BRAND_DESCRIPTION,
+        "brand_seller_app": BRAND_SELLER_APP,
+    }
+)
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 MAX_FILE_SIZE = 5 * 1024 * 1024
@@ -1483,7 +1501,7 @@ def api_mobile_otp_send(
         raise HTTPException(status_code=400, detail="Утасны дугаар буруу")
     code, _ = _create_phone_otp(session, target, purpose="store_phone")
     try:
-        sms_client.send_sms(target, f"ЗАМЧ лангуу баталгаажуулах код: {code}")
+        sms_client.send_sms(target, f"{BRAND_NAME} лангуу баталгаажуулах код: {code}")
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     payload: Dict[str, Any] = {
@@ -2226,7 +2244,7 @@ def api_create_store():
     """Web no longer opens stores — use ЗАМЧ Seller app."""
     raise HTTPException(
         status_code=403,
-        detail="Дэлгүүр нээх нь зөвхөн ЗАМЧ Seller аппаар хийгдэнэ. /for-sellers хуудаснаас мэдээлэл авна уу.",
+        detail=f"Дэлгүүр нээх нь зөвхөн {BRAND_SELLER_APP} аппаар хийгдэнэ. /for-sellers хуудаснаас мэдээлэл авна уу.",
     )
 
 
@@ -3878,7 +3896,7 @@ def api_create_order(
                 invoice = qpay_client.create_invoice(
                     sender_invoice_no=payment_group_id,
                     amount=grand_total,
-                    description=f"ЗАМЧ захиалга #{','.join(map(str, created_orders))}",
+                    description=f"{BRAND_NAME} захиалга #{','.join(map(str, created_orders))}",
                     callback_url=qpay_client.callback_url_for(payment_group_id),
                     lines=line_snapshots,
                     district_code=district,
@@ -4721,7 +4739,7 @@ def api_admin_approve_store(
                 session,
                 product,
                 "Бараа нийтлэгдлээ",
-                f"{product.title} ЗАМЧ marketplace дээр гарлаа.",
+                f"{product.title} {BRAND_MARKETPLACE} дээр гарлаа.",
                 "product_published",
             )
     return store.model_dump() if hasattr(store, "model_dump") else store.dict()
@@ -5018,7 +5036,7 @@ def api_admin_moderation_decision(
             session,
             product,
             "Бараа нийтлэгдлээ",
-            f"{product.title} ЗАМЧ marketplace дээр гарлаа.",
+            f"{product.title} {BRAND_MARKETPLACE} дээр гарлаа.",
             "product_published",
         )
     else:

@@ -28,7 +28,7 @@ from main import (
 
 DEMO_PHONE = "99001100"
 DEMO_PASSWORD = "demo1234"
-DEMO_STORE_NAME = "ЗАМЧ Demo Дугуй"
+DEMO_STORE_NAME = "CarHub Demo Дугуй"
 
 
 def _now() -> str:
@@ -66,7 +66,7 @@ def seed() -> None:
                 description="Туршилтын дэлгүүр — Приус, Land 200, RAV4-д түгээмэл хэмжээ.",
                 phone=DEMO_PHONE,
                 location="Улаанбаатар, Баянзүрх",
-                logo="/static/logo.jpg",
+                logo="/static/logo.png",
                 is_active=True,
                 is_approved=True,
             )
@@ -77,7 +77,7 @@ def seed() -> None:
             # Ensure demo store is visible on the public web
             store.is_active = True
             store.is_approved = True
-            store.logo = store.logo or "/static/logo.jpg"
+            store.logo = store.logo or "/static/logo.png"
             session.add(store)
             session.commit()
 

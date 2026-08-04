@@ -10,7 +10,7 @@ import urllib.request
 SMS_PROVIDER = (os.getenv("SMS_PROVIDER") or "mock").strip().lower()
 SMS_API_URL = (os.getenv("SMS_API_URL") or "").strip()
 SMS_API_KEY = (os.getenv("SMS_API_KEY") or "").strip()
-SMS_SENDER = (os.getenv("SMS_SENDER") or "ZAMCH").strip()
+SMS_SENDER = (os.getenv("SMS_SENDER") or "CARHUB").strip()
 
 
 def send_sms(phone: str, message: str) -> None:

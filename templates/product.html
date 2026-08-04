@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Бүтээгдэхүүн - ЗАМЧ</title>
-    {% set page_title = 'Бүтээгдэхүүн - ЗАМЧ' %}
-    {% set page_description = 'ЗАМЧ дээрх дугуй, обуд бүтээгдэхүүн.' %}
+    <title>Бүтээгдэхүүн - {{ brand_name }}</title>
+    {% set page_title = 'Бүтээгдэхүүн - ' ~ brand_name %}
+    {% set page_description = brand_name ~ ' дээрх дугуй, обуд бүтээгдэхүүн.' %}
     {% include "partials/head_meta.html" with context %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -45,18 +45,18 @@ async function loadProduct() {
     const res = await fetch('/api/products/' + productId);
     const box = document.getElementById('detail');
     if (!res.ok) {
-        document.title = 'Олдсонгүй - ЗАМЧ';
+        document.title = 'Олдсонгүй - {{ brand_name }}';
         box.innerHTML = '<div class="col-12 empty-state"><h3>Бүтээгдэхүүн олдсонгүй</h3><a href="/" class="btn-zamch btn-zamch-dark mt-3">Буцах</a></div>';
         return;
     }
     const p = await res.json();
     const title = String(p.title || 'Бүтээгдэхүүн').trim();
-    document.title = title + ' - ЗАМЧ';
-    const desc = [p.brand, p.category_name, p.store_name].filter(Boolean).join(' · ') || 'ЗАМЧ бүтээгдэхүүн';
+    document.title = title + ' - {{ brand_name }}';
+    const desc = [p.brand, p.category_name, p.store_name].filter(Boolean).join(' · ') || '{{ brand_name }} бүтээгдэхүүн';
     setMeta('description', desc);
-    setMeta('og:title', title + ' - ЗАМЧ', true);
+    setMeta('og:title', title + ' - {{ brand_name }}', true);
     setMeta('og:description', desc, true);
-    setMeta('twitter:title', title + ' - ЗАМЧ');
+    setMeta('twitter:title', title + ' - {{ brand_name }}');
     setMeta('twitter:description', desc);
     const images = (p.images || []).map(u => escapeHtml(safeUrl(u))).filter(Boolean);
     const mainImg = images[0] || '/static/placeholder.jpg';
