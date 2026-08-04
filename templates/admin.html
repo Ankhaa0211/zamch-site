@@ -39,6 +39,7 @@
             <li class="nav-item"><button class="nav-link" data-tab="moderation">Хяналт</button></li>
             <li class="nav-item"><button class="nav-link" data-tab="users">Хэрэглэгч</button></li>
             <li class="nav-item"><button class="nav-link" data-tab="shipments">Хүргэлт</button></li>
+            <li class="nav-item"><button class="nav-link" data-tab="feedback">Санал хүсэлт</button></li>
         </ul>
 
         <div class="card border-0 shadow-sm rounded-4 p-3">
@@ -49,6 +50,7 @@
             <div id="tab-moderation" class="tab-pane" style="display:none"></div>
             <div id="tab-users" class="tab-pane" style="display:none"></div>
             <div id="tab-shipments" class="tab-pane" style="display:none"></div>
+            <div id="tab-feedback" class="tab-pane" style="display:none"></div>
         </div>
     </div>
 </div>
@@ -86,7 +88,7 @@ async function init() {
 }
 
 async function refreshAll() {
-    await Promise.all([loadStats(), loadStores(), loadCategories(), loadOrders(), loadProducts(), loadModeration(), loadUsers(), loadShipments()]);
+    await Promise.all([loadStats(), loadStores(), loadCategories(), loadOrders(), loadProducts(), loadModeration(), loadUsers(), loadShipments(), loadFeedback()]);
 }
 
 async function loadStats() {
@@ -440,6 +442,47 @@ async function loadShipments() {
           </tbody>
         </table>
       </div>`;
+}
+
+async function loadFeedback() {
+    const data = (await (await fetch('/api/admin/feedback')).json()).data || [];
+    const unread = data.filter(f => f.status === 'new').length;
+    document.getElementById('tab-feedback').innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <h5 class="fw-bold mb-0">Санал хүсэлт</h5>
+          <small class="text-secondary">${data.length} бичлэг · ${unread} шинэ</small>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th>Огноо</th><th>Худалдагч</th><th>Лангуу</th><th>Мессеж</th><th></th></tr></thead>
+          <tbody>
+            ${data.map(f => `
+              <tr class="${f.status === 'new' ? 'table-warning' : ''}">
+                <td class="small text-nowrap">${escapeHtml(f.created_at || '')}</td>
+                <td class="small">${escapeHtml(f.user_name || '')}<br>${escapeHtml(f.user_phone || '')}</td>
+                <td class="small">${escapeHtml(f.store_name || '—')}</td>
+                <td style="white-space:pre-wrap;max-width:420px">${escapeHtml(f.message || '')}</td>
+                <td class="text-nowrap">
+                  ${f.status === 'new'
+                    ? `<button class="btn btn-outline-secondary btn-sm" onclick="markFeedbackRead(${f.id})">Уншсан</button>`
+                    : '<span class="badge text-bg-light">Уншсан</span>'}
+                </td>
+              </tr>`).join('') || '<tr><td colspan="5" class="text-secondary">Санал хүсэлт алга</td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+}
+
+async function markFeedbackRead(id) {
+    const res = await fetch('/api/admin/feedback/' + id + '/read', { method: 'POST' });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        alert(err.detail || 'Алдаа');
+        return;
+    }
+    loadFeedback();
 }
 
 init().catch(console.error);

@@ -293,6 +293,21 @@ class DeliveryShipment(SQLModel, table=True):
     created_at: str = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
 
 
+class SellerFeedback(SQLModel, table=True):
+    """Seller app санал хүсэлт — админ самбарт харагдана."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True)
+    store_id: Optional[int] = Field(default=None, index=True)
+    message: str
+    status: str = Field(default="new", index=True)  # new | read
+    created_at: str = Field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M"))
+
+
+FEEDBACK_MESSAGE_MIN = 5
+FEEDBACK_MESSAGE_MAX = 2000
+
+
 # v1: зөвхөн дугуй + обуд. Бусад ангиллыг дараа нэмнэ.
 DEFAULT_CATEGORIES = [
     {"name": "Дугуй", "slug": "dugui", "icon": "bi-circle"},
@@ -1487,6 +1502,36 @@ async def api_mobile_update_store(
     session.commit()
     session.refresh(store)
     return {"store": _store_mobile_payload(store)}
+
+
+@app.post("/api/mobile/feedback")
+def api_mobile_feedback(
+    message: str = Form(...),
+    authorization: Optional[str] = Header(None),
+    session: Session = Depends(get_session),
+):
+    user, store = require_mobile_seller(authorization, session)
+    text = (message or "").strip()
+    if len(text) < FEEDBACK_MESSAGE_MIN:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Дор хаяж {FEEDBACK_MESSAGE_MIN} тэмдэгт бичнэ үү",
+        )
+    if len(text) > FEEDBACK_MESSAGE_MAX:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Хамгийн ихдээ {FEEDBACK_MESSAGE_MAX} тэмдэгт",
+        )
+    row = SellerFeedback(
+        user_id=user.id,
+        store_id=store.id,
+        message=text,
+        status="new",
+    )
+    session.add(row)
+    session.commit()
+    session.refresh(row)
+    return {"ok": True, "id": row.id}
 
 
 @app.post("/api/mobile/otp/send")
@@ -5092,3 +5137,45 @@ def api_admin_shipments(request: Request, session: Session = Depends(get_session
     require_admin(request, session)
     rows = session.exec(select(DeliveryShipment).order_by(DeliveryShipment.id.desc()).limit(200)).all()
     return {"data": [_shipment_dict(s) for s in rows]}
+
+
+@app.get("/api/admin/feedback")
+def api_admin_feedback(request: Request, session: Session = Depends(get_session)):
+    require_admin(request, session)
+    rows = session.exec(select(SellerFeedback).order_by(SellerFeedback.id.desc()).limit(200)).all()
+    users = {u.id: u for u in session.exec(select(User)).all()}
+    stores = {s.id: s for s in session.exec(select(Store)).all()}
+    data = []
+    for row in rows:
+        user = users.get(row.user_id)
+        store = stores.get(row.store_id) if row.store_id else None
+        data.append(
+            {
+                "id": row.id,
+                "user_id": row.user_id,
+                "store_id": row.store_id,
+                "message": row.message,
+                "status": row.status,
+                "created_at": row.created_at,
+                "user_name": user.name if user else None,
+                "user_phone": user.phone if user else None,
+                "store_name": store.name if store else None,
+            }
+        )
+    return {"data": data}
+
+
+@app.post("/api/admin/feedback/{feedback_id}/read")
+def api_admin_feedback_read(
+    feedback_id: int,
+    request: Request,
+    session: Session = Depends(get_session),
+):
+    require_admin(request, session)
+    row = session.get(SellerFeedback, feedback_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Санал хүсэлт олдсонгүй")
+    row.status = "read"
+    session.add(row)
+    session.commit()
+    return {"ok": True, "id": row.id, "status": row.status}
