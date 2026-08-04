@@ -44,7 +44,7 @@ def seed() -> None:
         dugui = cats.get("dugui")
         obud = cats.get("obud")
         if not dugui or not obud:
-            raise SystemExit("Categories missing — start the app once or run seed_categories")
+            raise RuntimeError("Categories missing — start the app once or run seed_categories")
 
         seller = session.exec(select(User).where(User.phone == DEMO_PHONE)).first()
         if not seller:

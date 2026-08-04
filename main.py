@@ -525,16 +525,8 @@ def bootstrap_admin():
         session.commit()
 
 
-def maybe_seed_demo_marketplace() -> None:
-    """If public catalog is empty, seed demo store/products.
-
-    Opt out: SEED_DEMO_ON_BOOT=0
-    """
-    flag = (os.getenv("SEED_DEMO_ON_BOOT") or "1").strip().lower()
-    if flag in ("0", "false", "no", "off"):
-        return
+def _public_catalog_has_visible() -> bool:
     with Session(engine) as session:
-        # Only skip when shoppers would already see at least one listing
         visible = session.exec(
             select(Product.id)
             .join(Store, Store.id == Product.store_id)
@@ -547,15 +539,39 @@ def maybe_seed_demo_marketplace() -> None:
             )
             .limit(1)
         ).first()
-        if visible is not None:
-            return
-    try:
-        from seed_demo import seed
+    return visible is not None
 
-        print("Public catalog empty — seeding demo store/products")
-        seed()
-    except Exception as exc:
-        print(f"WARNING: demo seed failed: {exc}")
+
+def maybe_seed_demo_marketplace(*, force: bool = False) -> bool:
+    """If public catalog is empty, seed demo store/products.
+
+    Opt out: SEED_DEMO_ON_BOOT=0
+    Returns True when catalog has at least one visible listing afterwards.
+    """
+    flag = (os.getenv("SEED_DEMO_ON_BOOT") or "1").strip().lower()
+    if not force and flag in ("0", "false", "no", "off"):
+        return _public_catalog_has_visible()
+    if _public_catalog_has_visible():
+        return True
+
+    import traceback
+    import time
+
+    for attempt in range(1, 4):
+        try:
+            from seed_demo import seed
+
+            print(f"Public catalog empty — seeding demo store/products (attempt {attempt})")
+            seed()
+            if _public_catalog_has_visible():
+                print("Demo seed OK — public catalog has listings")
+                return True
+            print("WARNING: demo seed finished but catalog still empty")
+        except Exception as exc:
+            print(f"WARNING: demo seed failed (attempt {attempt}): {exc}")
+            traceback.print_exc()
+        time.sleep(attempt)
+    return _public_catalog_has_visible()
 
 
 def get_session():
@@ -4592,17 +4608,28 @@ def api_health(session: Session = Depends(get_session)):
         "brands": len(CAR_CATALOG),
         "stores": len(approved_stores),
         "products": product_count,
+        "catalog_empty": product_count == 0,
     }
+
+
+@app.post("/api/bootstrap-demo")
+def api_bootstrap_demo():
+    """Public one-shot: seed demo catalog only when marketplace is empty.
+
+    Safe for fresh Postgres (Render/Railway). No-op once listings exist.
+    """
+    if _public_catalog_has_visible():
+        return {"ok": True, "seeded": False, "reason": "catalog_already_has_listings"}
+    ok = maybe_seed_demo_marketplace(force=True)
+    return {"ok": ok, "seeded": ok, "reason": "seeded" if ok else "seed_failed"}
 
 
 @app.post("/api/admin/seed-demo")
 def api_admin_seed_demo(request: Request, session: Session = Depends(get_session)):
     """Admin: ensure demo store + published products exist for public testing."""
     require_admin(request, session)
-    from seed_demo import seed
-
-    seed()
-    return {"ok": True}
+    ok = maybe_seed_demo_marketplace(force=True)
+    return {"ok": ok}
 
 
 @app.get("/api/admin/stats")
